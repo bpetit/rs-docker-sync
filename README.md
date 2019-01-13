@@ -1,6 +1,14 @@
+# This is a fork
+
+This crate and repo were forked from [https://github.com/ghmlee/rust-docker](https://github.com/ghmlee/rust-docker) because the original repo seems to no longer be maintained.
+
+With this in mind I will try to keep this crate as backwards compatible as possible.
+
+Issues and PRs welcome.
+
 # Docker
 
-[![Build Status](https://travis-ci.org/ghmlee/rust-docker.svg)](https://travis-ci.org/ghmlee/rust-docker)
+[![Build Status](https://gitlab.com/kblobr/rust-docker/badges/master/build.svg)](https://gitlab.com/kblobr/rust-docker)
 
 This is a Docker Remote API binding in Rust. Documentation is available [here](https://ghmlee.github.io/rust-docker/doc/docker).
 
@@ -8,7 +16,7 @@ This is a Docker Remote API binding in Rust. Documentation is available [here](h
 
 ```
 [dependencies]
-docker = "0.0.41"
+rust-docker = "0.0.42"
 ```
 
 ```rust
@@ -300,8 +308,19 @@ fn main() {
 
 ## Contributing
 
+To have a consistent dev environment one can use the docker image in /devenv like so:
+1. `git clone https://gitlab.com/kblobr/rust-docker`
+2. `cd rust-docker/devenv`
+3. `./build_docker` (this assumes your user can run docker commands, otherwise `sudo`)
+4. `./run_docker -ti`
+5. Already inside the container:
+  1. `cd Code`
+  2. `cargo test`
+
+For changes:
+
 1. Fork it
-2. Create your a new remote upstream repository (`git remote add upstream git@github.com:ghmlee/rust-docker.git`)
-3. Commit your changes (`git commit -m 'Add some feature'`)
+2. Create your a new remote upstream repository (`git remote add upstream https://gitlab.com/kblobr/rust-docker`)
+3. Commit your changes (`git commit -m 'Adds some feature'`)
 4. Push to the branch (`git push origin your-branch`)
 5. Create new Pull Request

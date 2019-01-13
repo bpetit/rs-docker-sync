@@ -1,0 +1,6 @@
+#! /usr/bin/env bash
+docker run $@ \
+	--name devenv-rust-docker \
+	-v "$(pwd)/../":/Code:Z \
+	devenv:rust-docker
+docker container rm devenv-rust-docker
