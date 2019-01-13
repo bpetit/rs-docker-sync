@@ -1,5 +1,5 @@
 [package]
-name = "rust-docker"
+name = "rs-docker"
 description = "Docker Remote API in Rust"
 version = "0.0.42"
 authors = ["Thiago Areias <kblo.thiago@gmail.com>"]
