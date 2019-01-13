@@ -1,11 +1,11 @@
 [package]
-name = "docker"
+name = "rust-docker"
 description = "Docker Remote API in Rust"
-version = "0.0.41"
-authors = ["Graham Lee <ghmlee@ghmlee.com>"]
+version = "0.0.42"
+authors = ["Thiago Areias <kblo.thiago@gmail.com>"]
 license = "Apache-2.0"
-homepage = "https://github.com/ghmlee/rust-docker"
-repository = "https://github.com/ghmlee/rust-docker.git"
+homepage = "https://gitlab.com/kblobr/rust-docker"
+repository = "https://gitlab.com/kblobr/rust-docker.git"
 documentation = "https://ghmlee.github.io/rust-docker/doc/docker"
 readme = "README.md"
 keywords = ["docker"]
