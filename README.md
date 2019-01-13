@@ -20,9 +20,9 @@ rust-docker = "0.0.42"
 ```
 
 ```rust
-extern crate docker;
+extern crate rs_docker;
 
-use docker::Docker;
+use rs_docker::Docker;
 
 fn main() {
     let docker = match Docker::connect("unix:///var/run/docker.sock") {
@@ -53,9 +53,9 @@ export OPENSSL_ROOT_DIR=/usr/local/opt/openssl
 ### Containers
 
 ```rust
-extern crate docker;
+extern crate rs_docker;
 
-use docker::Docker;
+use rs_docker::Docker;
 
 fn main() {
     let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
@@ -73,9 +73,9 @@ fn main() {
 ### Stats
 
 ```rust
-extern crate docker;
+extern crate rs_docker;
 
-use docker::Docker;
+use rs_docker::Docker;
 
 fn main() {
     let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
@@ -98,9 +98,9 @@ fn main() {
 ### Images
 
 ```rust
-extern crate docker;
+extern crate rs_docker;
 
-use docker::Docker;
+use rs_docker::Docker;
 
 fn main() {
     let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
@@ -119,9 +119,9 @@ fn main() {
 ### Info
 
 ```rust
-extern crate docker;
+extern crate rs_docker;
 
-use docker::Docker;
+use rs_docker::Docker;
 
 fn main() {
     let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
@@ -139,9 +139,9 @@ fn main() {
 ### Processes
 
 ```rust
-extern crate docker;
+extern crate rs_docker;
 
-use docker::Docker;
+use rs_docker::Docker;
 
 fn main() {
     let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
@@ -164,9 +164,9 @@ fn main() {
 ### Filesystem changes
 
 ```rust
-extern crate docker;
+extern crate rs_docker;
 
-use docker::Docker;
+use rs_docker::Docker;
 
 fn main() {
     let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
@@ -189,9 +189,9 @@ fn main() {
 ### Export a container
 
 ```rust
-extern crate docker;
+extern crate rs_docker;
 
-use docker::Docker;
+use rs_docker::Docker;
 
 fn main() {
     let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
@@ -214,9 +214,9 @@ fn main() {
 ### Create an image
 
 ```rust
-extern crate docker;
+extern crate rs_docker;
 
-use docker::Docker;
+use rs_docker::Docker;
 
 fn main() {
     let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
@@ -244,9 +244,9 @@ fn main() {
 ### Ping the docker server
 
 ```rust
-extern crate docker;
+extern crate rs_docker;
 
-use docker::Docker;
+use rs_docker::Docker;
 
 fn main() {
     let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
@@ -264,9 +264,9 @@ fn main() {
 ### Show the docker version information
 
 ```rust
-extern crate docker;
+extern crate rs_docker;
 
-use docker::Docker;
+use rs_docker::Docker;
 
 fn main() {
     let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
@@ -288,9 +288,9 @@ By default, `Docker Toolbox` runs `docker` with TLS enabled. It auto-generates c
 ### Example
 
 ```rust
-extern crate docker;
+extern crate rs_docker;
 
-use docker::Docker;
+use rs_docker::Docker;
 use std::path::Path;
 
 fn main() {
