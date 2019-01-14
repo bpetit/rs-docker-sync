@@ -15,6 +15,15 @@ use filesystem::FilesystemChange;
 #[cfg(test)]
 use version::Version;
 
+#[cfg(test)]
+use docker::create_http_request;
+
+#[test]
+#[cfg(test)]
+fn create_proper_http_request() {
+    assert_eq!(create_http_request("GET", "/containers/json?all=1&size=1"), "GET /v1.24/containers/json?all=1&size=1 HTTP/1.1\r\nHost: v1.24\r\n\r\n");
+}
+
 #[test]
 #[cfg(test)]
 fn get_containers() {

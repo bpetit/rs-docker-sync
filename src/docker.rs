@@ -27,6 +27,10 @@ enum Protocol {
     TCP
 }
 
+pub fn create_http_request(http_method: &str, url: &str) -> String {
+    format!("{} /v1.24{} HTTP/1.1\r\nHost: v1.24\r\n\r\n", http_method, url)
+}
+
 impl Docker {
     pub fn connect(addr: &str) -> std::io::Result<Docker> {
         let components: Vec<&str> = addr.split("://").collect();
@@ -95,7 +99,7 @@ impl Docker {
             false => "0"
         };
         
-        let request = format!("GET /containers/json?all={}&size=1 HTTP/1.1\r\n\r\n", a);
+        let request = create_http_request("GET", &format!("/containers/json?all={}&size=1", a));
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
@@ -114,7 +118,7 @@ impl Docker {
     }
     
     pub fn get_processes(&mut self, container: &Container) -> std::io::Result<Vec<Process>> {
-        let request = format!("GET /containers/{}/top HTTP/1.1\r\n\r\n", container.Id);
+        let request = create_http_request("GET", &format!("/containers/{}/top", container.Id));
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
@@ -190,7 +194,7 @@ impl Docker {
             return Err(err);
         }
 
-        let request = format!("GET /containers/{}/stats HTTP/1.1\r\n\r\n", container.Id);
+        let request = create_http_request("GET", &format!("/containers/{}/stats", container.Id));
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
@@ -212,7 +216,7 @@ impl Docker {
     //
     
     pub fn create_image(&mut self, image: String, tag: String) -> std::io::Result<Vec<ImageStatus>> {
-        let request = format!("POST /images/create?fromImage={}&tag={} HTTP/1.1\r\n\r\n", image, tag);
+        let request = create_http_request("POST", &format!("/images/create?fromImage={}&tag={}", image, tag));
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         let body = format!("[{}]", try!(response.get_encoded_body()));
@@ -234,7 +238,7 @@ impl Docker {
             true => "1",
             false => "0"
         };
-        let request = format!("GET /images/json?all={} HTTP/1.1\r\n\r\n", a);
+        let request = create_http_request("GET", &format!("/images/json?all={}", a));
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
@@ -252,7 +256,7 @@ impl Docker {
     }
 
     pub fn get_system_info(&mut self) -> std::io::Result<SystemInfo> {
-        let request = "GET /info HTTP/1.1\r\n\r\n";
+        let request = create_http_request("GET", "/info");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
@@ -270,7 +274,7 @@ impl Docker {
     }
 
     pub fn get_container_info(&mut self, container: &Container) -> std::io::Result<ContainerInfo> {
-        let request = format!("GET /containers/{}/json HTTP/1.1\r\n\r\n", container.Id);
+        let request = create_http_request("GET", &format!("/containers/{}/json", container.Id));
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
@@ -288,7 +292,7 @@ impl Docker {
     }
     
     pub fn get_filesystem_changes(&mut self, container: &Container) -> std::io::Result<Vec<FilesystemChange>> {
-        let request = format!("GET /containers/{}/changes HTTP/1.1\r\n\r\n", container.Id);
+        let request = create_http_request("GET", &format!("/containers/{}/changes", container.Id));
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
@@ -306,7 +310,7 @@ impl Docker {
     }
 
     pub fn export_container(&mut self, container: &Container) -> std::io::Result<Vec<u8>> {
-        let request = format!("GET /containers/{}/export HTTP/1.1\r\n\r\n", container.Id);
+        let request = create_http_request("GET", &format!("/containers/{}/export", container.Id));
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
@@ -315,7 +319,7 @@ impl Docker {
     }
 
      pub fn ping(&mut self) -> std::io::Result<String> {
-        let request = format!("GET /_ping HTTP/1.1\r\n\r\n");
+        let request = create_http_request("GET", "/_ping");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
@@ -325,7 +329,7 @@ impl Docker {
      }
 
     pub fn get_version(&mut self) -> std::io::Result<Version> {
-        let request = format!("GET /version HTTP/1.1\r\n\r\n");
+        let request = create_http_request("GET", "/version");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
