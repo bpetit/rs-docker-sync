@@ -4,12 +4,15 @@ before_script:
 - apt-get update
 - apt-get install -q -y build-essential libssl1.0-dev
 
-script:
-- rustc --version && cargo --version
-- cargo test --all --verbose
 
 test:latest:
   image: "rust:latest"
+  script:
+  - rustc --version && cargo --version
+  - cargo test --all --verbose
 
 test:nightly:
   image: "rustlang/rust:nightly"
+  script:
+  - rustc --version && cargo --version
+  - cargo test --all --verbose
