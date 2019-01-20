@@ -7,6 +7,7 @@ use unix::UnixStream;
 use http::{self, Response};
 
 use container::{Container, ContainerInfo};
+use network::Network;
 use process::{Process, Top};
 use stats::Stats;
 use system::SystemInfo;
@@ -87,6 +88,23 @@ impl Docker {
         }
 
         return Ok(());
+    }
+
+    // 
+    // Networks
+    //
+
+    pub fn get_networks(&mut self) -> std::io::Result<Vec<Network>> {
+        let request = create_http_request("GET", "/networks");
+        let raw = try!(self.read(request.as_bytes()));
+        let response = try!(self.get_response(&raw));
+        try!(self.get_status_code(&response));
+        let body = try!(response.get_encoded_body());
+
+        match json::decode(&body) {
+            Ok(networks) => Ok(networks),
+            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, e.description()))
+        }
     }
 
     //

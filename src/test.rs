@@ -3,6 +3,8 @@ use rustc_serialize::json;
 #[cfg(test)]
 use container::{Container, ContainerInfo};
 #[cfg(test)]
+use network::Network;
+#[cfg(test)]
 use process::{Top};
 #[cfg(test)]
 use stats::Stats;
@@ -22,6 +24,16 @@ use docker::create_http_request;
 #[cfg(test)]
 fn create_proper_http_request() {
     assert_eq!(create_http_request("GET", "/containers/json?all=1&size=1"), "GET /v1.24/containers/json?all=1&size=1 HTTP/1.1\r\nHost: v1.24\r\n\r\n");
+}
+
+#[test]
+#[cfg(test)]
+fn get_networks() {
+    let response = get_networks_response();
+    let _: Vec<Network> = match json::decode(&response) {
+        Ok(body) => body,
+        Err(e) => { assert!(false); return; }
+    };
 }
 
 #[test]
@@ -103,6 +115,11 @@ fn get_version(){
         Err(_) => { assert!(false); return; }
     };
 }    
+
+#[cfg(test)]
+fn get_networks_response() -> String {
+    return "[{\"Name\":\"bridge\",\"Id\":\"f2de39df4171b0dc801e8002d1d999b77256983dfc63041c0f34030aa3977566\",\"Created\":\"2016-10-19T06:21:00.416543526Z\",\"Scope\":\"local\",\"Driver\":\"bridge\",\"EnableIPv6\":false,\"Internal\":false,\"Attachable\":false,\"Ingress\":false,\"IPAM\":{\"Driver\":\"default\",\"Config\":[{\"Subnet\":\"172.17.0.0/16\"}]},\"Options\":{\"com.docker.network.bridge.default_bridge\":\"true\",\"com.docker.network.bridge.enable_icc\":\"true\",\"com.docker.network.bridge.enable_ip_masquerade\":\"true\",\"com.docker.network.bridge.host_binding_ipv4\":\"0.0.0.0\",\"com.docker.network.bridge.name\":\"docker0\",\"com.docker.network.driver.mtu\":\"1500\"}},{\"Name\":\"none\",\"Id\":\"e086a3893b05ab69242d3c44e49483a3bbbd3a26b46baa8f61ab797c1088d794\",\"Created\":\"0001-01-01T00:00:00Z\",\"Scope\":\"local\",\"Driver\":null,\"EnableIPv6\":false,\"Internal\":false,\"Attachable\":false,\"Ingress\":false,\"IPAM\":{\"Driver\":\"default\",\"Config\":[]},\"Containers\":{},\"Options\":{}},{\"Name\":\"host\",\"Id\":\"13e871235c677f196c4e1ecebb9dc733b9b2d2ab589e30c539efeda84a24215e\",\"Created\":\"0001-01-01T00:00:00Z\",\"Scope\":\"local\",\"Driver\":\"host\",\"EnableIPv6\":false,\"Internal\":false,\"Attachable\":false,\"Ingress\":false,\"IPAM\":{\"Driver\":\"default\",\"Config\":[]},\"Containers\":{},\"Options\":{}}]".to_string();
+}
 
 #[cfg(test)]
 fn get_containers_response() -> String {

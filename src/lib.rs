@@ -13,6 +13,7 @@ mod http;
 mod test;
 mod docker;
 pub mod container;
+pub mod network;
 pub mod stats;
 pub mod system;
 pub mod image;
