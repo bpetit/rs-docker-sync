@@ -16,7 +16,7 @@ This is a Docker Remote API binding in Rust. Documentation is available [here](h
 
 ```
 [dependencies]
-rs-docker = "0.0.43"
+rs-docker = "0.0.44"
 ```
 
 ```rust
@@ -49,6 +49,27 @@ export OPENSSL_ROOT_DIR=/usr/local/opt/openssl
 ```
 
 ## Examples
+
+### Networks
+
+```rust
+extern crate rs_docker;
+
+use rs_docker::Docker;
+
+fn main() {
+    let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
+    	Ok(docker) => docker,
+        Err(e) => { panic!("{}", e); }
+    };
+
+    let networks = match docker.get_networks() {
+        Ok(networks) => networks,
+        Err(e) => { panic!("{}", e); }
+    };
+}
+```
+
 
 ### Containers
 
