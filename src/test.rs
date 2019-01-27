@@ -32,7 +32,7 @@ fn get_networks() {
     let response = get_networks_response();
     let _: Vec<Network> = match json::decode(&response) {
         Ok(body) => body,
-        Err(e) => { assert!(false); return; }
+        Err(_) => { assert!(false); return; }
     };
 }
 

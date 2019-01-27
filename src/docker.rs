@@ -392,35 +392,3 @@ impl Docker {
         }
     }
 }
-
-
-
-impl Clone for Docker {
-    fn clone(&self)-> Self {
-        let protocol = match self.protocol {
-            Protocol::UNIX => Protocol::UNIX,
-            Protocol::TCP => Protocol::TCP
-        };
-        
-        let unix_stream = match self.unix_stream {
-            Some(ref unix_stream) => {
-                Some(unix_stream.clone())
-            }
-            None => None
-        };
-
-        let tcp_stream = match self.tcp_stream {
-            Some(ref tcp_stream) => {
-                Some(tcp_stream.clone())
-            }
-            None => None
-        };
-        
-        let docker = Docker {
-            protocol: protocol,
-            unix_stream: unix_stream,
-            tcp_stream: tcp_stream
-        };
-        return docker;
-    }
-}

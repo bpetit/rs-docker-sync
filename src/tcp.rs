@@ -27,7 +27,7 @@ impl TcpStream {
     pub fn set_ssl_context(&mut self, key: &Path, cert: &Path, ca: &Path) -> std::io::Result<()> {
         self.tls = true;
 
-        let mut context = match openssl::ssl::SslContext::new(openssl::ssl::SslMethod::Tlsv1) {
+        let mut context = match openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls()) {
             Ok(context) => context,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::NotConnected,
@@ -36,7 +36,7 @@ impl TcpStream {
             }
         };
 
-        match context.set_private_key_file(key, openssl::x509::X509FileType::PEM) {
+        match context.set_private_key_file(key, openssl::ssl::SslFiletype::PEM) {
             Ok(_) => {}
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
@@ -45,7 +45,7 @@ impl TcpStream {
             }
         }
 
-        match context.set_certificate_file(cert, openssl::x509::X509FileType::PEM) {
+        match context.set_certificate_file(cert, openssl::ssl::SslFiletype::PEM) {
             Ok(_) => {}
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::NotConnected,
@@ -54,7 +54,7 @@ impl TcpStream {
             }
         }
 
-        match context.set_CA_file(ca) {
+        match context.set_ca_file(ca) {
             Ok(_) => {}
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::NotConnected,
@@ -64,7 +64,7 @@ impl TcpStream {
         }
         
         let stream = self.stream.try_clone().unwrap();
-        let ssl_stream = match openssl::ssl::SslStream::connect(&context, stream) {
+        let ssl_stream = match openssl::ssl::Ssl::new(&context.build()).unwrap().connect(stream) {
             Ok(ssl_stream) => ssl_stream,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::NotConnected,
@@ -87,7 +87,7 @@ impl TcpStream {
                 raw
             }
             true => {
-                let mut ssl_stream = self.ssl_stream.as_mut().unwrap().try_clone().unwrap();
+                let mut ssl_stream = self.ssl_stream.as_mut().unwrap();
                 let _ = ssl_stream.write(buf);
                 let raw = try!(TcpStream::read_from_stream(&mut ssl_stream));
                 raw
@@ -125,24 +125,5 @@ impl TcpStream {
         }
 
         return Ok(raw);
-    }
-}
-
-impl Clone for TcpStream {
-    fn clone(&self) -> Self {
-        let ssl_stream = match self.ssl_stream {
-            Some(ref ssl_stream) => {
-                Some(ssl_stream.try_clone().unwrap())
-            }
-            None => None
-        };
-        
-        let stream = TcpStream {
-            tls: self.tls.clone(),
-            stream: self.stream.try_clone().unwrap(),
-            ssl_stream: ssl_stream
-        };
-
-        return stream;
     }
 }
