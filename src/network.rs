@@ -13,7 +13,8 @@ pub struct Network {
     pub Internal: bool,
     pub Attachable: bool,
     pub Ingress: bool,
-    pub Options: HashMap<String, String>
+    pub Options: HashMap<String, String>,
+    pub Labels: Option<HashMap<String, String>>
     //IPAM
 }
 
@@ -29,7 +30,8 @@ impl Clone for Network {
             Internal: self.Internal,
             Attachable: self.Attachable,
             Ingress: self.Ingress,
-            Options: self.Options.clone()
+            Options: self.Options.clone(),
+            Labels: self.Labels.clone()
         }
     }
 }
