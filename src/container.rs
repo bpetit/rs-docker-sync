@@ -1,7 +1,7 @@
 use std;
 use std::collections::HashMap;
 
-#[derive(RustcEncodable, RustcDecodable)]
+#[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
 //Labels, HostConfig
 pub struct Container {
@@ -18,7 +18,7 @@ pub struct Container {
     pub HostConfig: HostConfig
 }
 
-#[derive(RustcEncodable, RustcDecodable)]
+#[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
 pub struct Port {
     pub IP: Option<String>,
@@ -27,13 +27,13 @@ pub struct Port {
     pub Type: String
 }
 
-#[derive(RustcEncodable, RustcDecodable)]
+#[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
 pub struct HostConfig {
     pub NetworkMode: String
 }
 
-#[derive(RustcEncodable, RustcDecodable)]
+#[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
 pub struct ContainerInfo {
     pub AppArmorProfile: String,

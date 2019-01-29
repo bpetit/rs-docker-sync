@@ -15,7 +15,7 @@ pub struct Process {
     pub command: String,
 }
 
-#[derive(RustcEncodable, RustcDecodable)]
+#[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
 pub struct Top {
     pub Titles: Vec<String>,

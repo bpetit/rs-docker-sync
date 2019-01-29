@@ -1,4 +1,4 @@
-#[derive(RustcEncodable, RustcDecodable)]
+#[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
 pub struct Image {
     pub Created: u64,
@@ -23,7 +23,7 @@ impl Clone for Image {
     }
 }
 
-#[derive(RustcEncodable, RustcDecodable)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ImageStatus {
     pub status: Option<String>,
     pub error: Option<String>

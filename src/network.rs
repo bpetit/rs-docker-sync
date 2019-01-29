@@ -1,7 +1,7 @@
 use std;
 use std::collections::HashMap;
 
-#[derive(RustcEncodable, RustcDecodable)]
+#[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
 pub struct Network {
     pub Name: String,

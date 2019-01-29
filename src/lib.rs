@@ -1,10 +1,14 @@
 //! Docker
 #![doc(html_root_url="https://ghmlee.github.io/rust-docker/doc")]
+#[macro_use]
+extern crate serde_derive;
+
+extern crate serde;
+extern crate serde_json;
 
 // import external libraries
 extern crate openssl;
 extern crate unix_socket;
-extern crate rustc_serialize;
 
 // declare modules
 mod tcp;

@@ -15,8 +15,6 @@ use image::{Image, ImageStatus};
 use filesystem::FilesystemChange;
 use version::Version;
 
-use rustc_serialize::json;
-
 pub struct Docker {
     protocol: Protocol,
     unix_stream: Option<UnixStream>,
@@ -28,8 +26,8 @@ enum Protocol {
     TCP
 }
 
-pub fn create_http_request(http_method: &str, url: &str) -> String {
-    format!("{} /v1.24{} HTTP/1.1\r\nHost: v1.24\r\n\r\n", http_method, url)
+pub fn create_http_request(http_method: &str, url: &str, body: &str) -> String {
+    format!("{} /v1.24{} HTTP/1.1\r\nHost: v1.24\r\n\r\n{}", http_method, url, body)
 }
 
 impl Docker {
@@ -95,16 +93,45 @@ impl Docker {
     //
 
     pub fn get_networks(&mut self) -> std::io::Result<Vec<Network>> {
-        let request = create_http_request("GET", "/networks");
+        let request = create_http_request("GET", "/networks", "");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
         let body = try!(response.get_encoded_body());
 
-        match json::decode(&body) {
+        match serde_json::from_str(&body) {
             Ok(networks) => Ok(networks),
             Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, e.description()))
         }
+    }
+
+    pub fn create_network(&mut self, network: Network) -> std::io::Result<Network> {
+        let request = create_http_request("POST", "/networks/create", &serde_json::to_string(&network).unwrap());
+        let raw = try!(self.read(request.as_bytes()));
+        let response = try!(self.get_response(&raw));
+        let body = format!("[{}]", try!(response.get_encoded_body()));
+        let fixed = body.replace("}{", "},{");
+        
+        match serde_json::from_str(&fixed) {
+            Ok(network) => Ok(network),
+            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, e.description()))
+        }
+    }
+
+    pub fn delete_network(&mut self, id_or_name: String) -> std::io::Result<String> {
+        let request = create_http_request("DELETE", &format!("/networks/{}", id_or_name), "");
+        let raw = try!(self.read(request.as_bytes()));
+        let response = try!(self.get_response(&raw));
+        let body = try!(response.get_encoded_body());
+
+        let status: serde_json::Value = match serde_json::from_str(&body) {
+            Ok(status) => status,
+            Err(e) => {
+                return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
+                                              e.description()));
+            }
+        };
+        return Ok(status["message"].to_string());
     }
 
     //
@@ -117,13 +144,13 @@ impl Docker {
             false => "0"
         };
         
-        let request = create_http_request("GET", &format!("/containers/json?all={}&size=1", a));
+        let request = create_http_request("GET", &format!("/containers/json?all={}&size=1", a), "");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
         let body = try!(response.get_encoded_body());
 
-        let containers: Vec<Container> = match json::decode(&body) {
+        let containers: Vec<Container> = match serde_json::from_str(&body) {
             Ok(containers) => containers,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
@@ -136,13 +163,13 @@ impl Docker {
     }
     
     pub fn get_processes(&mut self, container: &Container) -> std::io::Result<Vec<Process>> {
-        let request = create_http_request("GET", &format!("/containers/{}/top", container.Id));
+        let request = create_http_request("GET", &format!("/containers/{}/top", container.Id), "");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
         let body = try!(response.get_encoded_body()); 
         
-        let top: Top = match json::decode(&body) {
+        let top: Top = match serde_json::from_str(&body) {
             Ok(top) => top,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
@@ -212,13 +239,13 @@ impl Docker {
             return Err(err);
         }
 
-        let request = create_http_request("GET", &format!("/containers/{}/stats", container.Id));
+        let request = create_http_request("GET", &format!("/containers/{}/stats", container.Id), "");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
         let body = try!(response.get_encoded_body());
         
-        let stats: Stats = match json::decode(&body) {
+        let stats: Stats = match serde_json::from_str(&body) {
             Ok(stats) => stats,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
@@ -234,13 +261,13 @@ impl Docker {
     //
     
     pub fn create_image(&mut self, image: String, tag: String) -> std::io::Result<Vec<ImageStatus>> {
-        let request = create_http_request("POST", &format!("/images/create?fromImage={}&tag={}", image, tag));
+        let request = create_http_request("POST", &format!("/images/create?fromImage={}&tag={}", image, tag), "");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         let body = format!("[{}]", try!(response.get_encoded_body()));
         let fixed = body.replace("}{", "},{");
         
-        let statuses: Vec<ImageStatus> = match json::decode(&fixed) {
+        let statuses: Vec<ImageStatus> = match serde_json::from_str(&fixed) {
             Ok(statuses) => statuses,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
@@ -256,13 +283,13 @@ impl Docker {
             true => "1",
             false => "0"
         };
-        let request = create_http_request("GET", &format!("/images/json?all={}", a));
+        let request = create_http_request("GET", &format!("/images/json?all={}", a), "");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
         let body = try!(response.get_encoded_body());
         
-        let images: Vec<Image> = match json::decode(&body) {
+        let images: Vec<Image> = match serde_json::from_str(&body) {
             Ok(images) => images,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
@@ -274,13 +301,13 @@ impl Docker {
     }
 
     pub fn get_system_info(&mut self) -> std::io::Result<SystemInfo> {
-        let request = create_http_request("GET", "/info");
+        let request = create_http_request("GET", "/info", "");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
         let body = try!(response.get_encoded_body());
         
-        let info: SystemInfo = match json::decode(&body) {
+        let info: SystemInfo = match serde_json::from_str(&body) {
             Ok(info) => info,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
@@ -292,13 +319,13 @@ impl Docker {
     }
 
     pub fn get_container_info(&mut self, container: &Container) -> std::io::Result<ContainerInfo> {
-        let request = create_http_request("GET", &format!("/containers/{}/json", container.Id));
+        let request = create_http_request("GET", &format!("/containers/{}/json", container.Id), "");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
         let body = try!(response.get_encoded_body());
         
-        let container_info: ContainerInfo = match json::decode(&body) {
+        let container_info: ContainerInfo = match serde_json::from_str(&body) {
             Ok(body) => body,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
@@ -310,13 +337,13 @@ impl Docker {
     }
     
     pub fn get_filesystem_changes(&mut self, container: &Container) -> std::io::Result<Vec<FilesystemChange>> {
-        let request = create_http_request("GET", &format!("/containers/{}/changes", container.Id));
+        let request = create_http_request("GET", &format!("/containers/{}/changes", container.Id), "");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
         let body = try!(response.get_encoded_body());
         
-        let filesystem_changes: Vec<FilesystemChange> = match json::decode(&body) {
+        let filesystem_changes: Vec<FilesystemChange> = match serde_json::from_str(&body) {
             Ok(body) => body,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
@@ -328,7 +355,7 @@ impl Docker {
     }
 
     pub fn export_container(&mut self, container: &Container) -> std::io::Result<Vec<u8>> {
-        let request = create_http_request("GET", &format!("/containers/{}/export", container.Id));
+        let request = create_http_request("GET", &format!("/containers/{}/export", container.Id), "");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
@@ -337,7 +364,7 @@ impl Docker {
     }
 
      pub fn ping(&mut self) -> std::io::Result<String> {
-        let request = create_http_request("GET", "/_ping");
+        let request = create_http_request("GET", "/_ping", "");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
@@ -347,13 +374,13 @@ impl Docker {
      }
 
     pub fn get_version(&mut self) -> std::io::Result<Version> {
-        let request = create_http_request("GET", "/version");
+        let request = create_http_request("GET", "/version", "");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         try!(self.get_status_code(&response));
         let encoded_body = try!(response.get_encoded_body());
 
-        let version: Version = match json::decode(&encoded_body){
+        let version: Version = match serde_json::from_str(&encoded_body){
             Ok(body) => body,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput, e.description());

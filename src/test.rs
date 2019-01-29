@@ -1,6 +1,4 @@
 #[cfg(test)]
-use rustc_serialize::json;
-#[cfg(test)]
 use container::{Container, ContainerInfo};
 #[cfg(test)]
 use network::Network;
@@ -23,14 +21,15 @@ use docker::create_http_request;
 #[test]
 #[cfg(test)]
 fn create_proper_http_request() {
-    assert_eq!(create_http_request("GET", "/containers/json?all=1&size=1"), "GET /v1.24/containers/json?all=1&size=1 HTTP/1.1\r\nHost: v1.24\r\n\r\n");
+    assert_eq!(create_http_request("GET", "/containers/json?all=1&size=1", ""), "GET /v1.24/containers/json?all=1&size=1 HTTP/1.1\r\nHost: v1.24\r\n\r\n");
+    assert_eq!(create_http_request("POST", "/networks/create", "{a:1}"), "POST /v1.24/networks/create HTTP/1.1\r\nHost: v1.24\r\n\r\n{a:1}");
 }
 
 #[test]
 #[cfg(test)]
 fn get_networks() {
     let response = get_networks_response();
-    let _: Vec<Network> = match json::decode(&response) {
+    let _: Vec<Network> = match serde_json::from_str(&response) {
         Ok(body) => body,
         Err(_) => { assert!(false); return; }
     };
@@ -40,7 +39,7 @@ fn get_networks() {
 #[cfg(test)]
 fn get_containers() {
     let response = get_containers_response();
-    let _: Vec<Container> = match json::decode(&response) {
+    let _: Vec<Container> = match serde_json::from_str(&response) {
         Ok(body) => body,
         Err(_) => { assert!(false); return; }
     };
@@ -50,7 +49,7 @@ fn get_containers() {
 #[cfg(test)]
 fn get_stats() {
     let response = get_stats_response();
-    let _: Stats = match json::decode(&response) {
+    let _: Stats = match serde_json::from_str(&response) {
         Ok(body) => body,
         Err(_) => { assert!(false); return; }
     };
@@ -60,7 +59,7 @@ fn get_stats() {
 #[cfg(test)]
 fn get_system_info() {
     let response = get_system_info_response();
-    let _: SystemInfo = match json::decode(&response) {
+    let _: SystemInfo = match serde_json::from_str(&response) {
         Ok(body) => body,
         Err(_) => { assert!(false); return; }
     };
@@ -70,7 +69,7 @@ fn get_system_info() {
 #[cfg(test)]
 fn get_images() {
     let response = get_images_response();
-    let _: Vec<Image> = match json::decode(&response) {
+    let _: Vec<Image> = match serde_json::from_str(&response) {
         Ok(body) => body,
         Err(_) => { assert!(false); return; }
     };
@@ -80,7 +79,7 @@ fn get_images() {
 #[cfg(test)]
 fn get_container_info() {
     let response = get_container_info_response();
-    let _: ContainerInfo = match json::decode(&response) {
+    let _: ContainerInfo = match serde_json::from_str(&response) {
         Ok(body) => body,
         Err(_) => { assert!(false); return; }
     };
@@ -90,7 +89,7 @@ fn get_container_info() {
 #[cfg(test)]
 fn get_processes() {
     let response = get_processes_response();
-    let _: Top = match json::decode(&response) {
+    let _: Top = match serde_json::from_str(&response) {
         Ok(body) => body,
         Err(_) => { assert!(false); return; }
     };
@@ -100,7 +99,7 @@ fn get_processes() {
 #[cfg(test)]
 fn get_filesystem_changes() {
     let response = get_filesystem_changes_response();
-    let _: Vec<FilesystemChange> = match json::decode(&response) {
+    let _: Vec<FilesystemChange> = match serde_json::from_str(&response) {
         Ok(body) => body,
         Err(_) => { assert!(false); return; }
     };
@@ -110,7 +109,7 @@ fn get_filesystem_changes() {
 #[cfg(test)]
 fn get_version(){
     let response = get_version_response();
-    let _: Version = match json::decode(&response) {
+    let _: Version = match serde_json::from_str(&response) {
         Ok(body) => body,
         Err(_) => { assert!(false); return; }
     };
