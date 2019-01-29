@@ -118,7 +118,7 @@ impl Docker {
         }
     }
 
-    pub fn delete_network(&mut self, id_or_name: String) -> std::io::Result<String> {
+    pub fn delete_network(&mut self, id_or_name: &str) -> std::io::Result<String> {
         let request = create_http_request("DELETE", &format!("/networks/{}", id_or_name), "");
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
