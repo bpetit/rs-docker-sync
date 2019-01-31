@@ -105,16 +105,23 @@ impl Docker {
         }
     }
 
-    pub fn create_network(&mut self, network: Network) -> std::io::Result<Network> {
+    pub fn create_network(&mut self, network: Network) -> std::io::Result<String> {
         let request = create_http_request("POST", "/networks/create", &serde_json::to_string(&network).unwrap());
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
         let body = format!("[{}]", try!(response.get_encoded_body()));
         let fixed = body.replace("}{", "},{");
         
-        match serde_json::from_str(&fixed) {
-            Ok(network) => Ok(network),
-            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, e.description()))
+        let status: serde_json::Value = match serde_json::from_str(&fixed) {
+            Ok(status) => status,
+            Err(e) => {
+                return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
+                                              e.description()));
+            }
+        };
+        match status.get("Id") {
+            Some(id) => Ok(id.to_string()),
+            _ => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, status.get("message").unwrap().to_string()))
         }
     }
 
