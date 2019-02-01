@@ -21,8 +21,8 @@ use docker::create_http_request;
 #[test]
 #[cfg(test)]
 fn create_proper_http_request() {
-    assert_eq!(create_http_request("GET", "/containers/json?all=1&size=1", ""), "GET /v1.24/containers/json?all=1&size=1 HTTP/1.1\r\nHost: v1.24\r\n\r\n");
-    assert_eq!(create_http_request("POST", "/networks/create", "{a:1}"), "POST /v1.24/networks/create HTTP/1.1\r\nHost: v1.24\r\n\r\n{a:1}");
+    assert_eq!(create_http_request("GET", "/containers/json?all=1&size=1", ""), "GET /containers/json?all=1&size=1 HTTP/1.1\r\nHost: localhost\r\nUser-Agent: rs_docker 1.0\r\nContent-Type: application/json\r\nAccept: application/json\r\nContent-Length: 0\r\n\r\n");
+    assert_eq!(create_http_request("POST", "/networks/create", "{a:1}"), "POST /networks/create HTTP/1.1\r\nHost: localhost\r\nUser-Agent: rs_docker 1.0\r\nContent-Type: application/json\r\nAccept: application/json\r\nContent-Length: 5\r\n\r\n{a:1}\r\n");
 }
 
 #[test]

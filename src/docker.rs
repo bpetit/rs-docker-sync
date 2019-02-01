@@ -7,7 +7,7 @@ use unix::UnixStream;
 use http::{self, Response};
 
 use container::{Container, ContainerInfo};
-use network::Network;
+use network::{Network, NetworkCreate};
 use process::{Process, Top};
 use stats::Stats;
 use system::SystemInfo;
@@ -27,7 +27,11 @@ enum Protocol {
 }
 
 pub fn create_http_request(http_method: &str, url: &str, body: &str) -> String {
-    format!("{} /v1.24{} HTTP/1.1\r\nHost: v1.24\r\n\r\n{}", http_method, url, body)
+    let mut fixed_body:String = String::from(body);
+    if fixed_body.len() > 0 {
+        fixed_body.push_str("\r\n");
+    }
+    format!("{} {} HTTP/1.1\r\nHost: localhost\r\nUser-Agent: rs_docker 1.0\r\nContent-Type: application/json\r\nAccept: application/json\r\nContent-Length: {}\r\n\r\n{}", http_method, url, body.to_string().len(), fixed_body)
 }
 
 impl Docker {
@@ -105,14 +109,13 @@ impl Docker {
         }
     }
 
-    pub fn create_network(&mut self, network: Network) -> std::io::Result<String> {
+    pub fn create_network(&mut self, network: NetworkCreate) -> std::io::Result<String> {
         let request = create_http_request("POST", "/networks/create", &serde_json::to_string(&network).unwrap());
         let raw = try!(self.read(request.as_bytes()));
         let response = try!(self.get_response(&raw));
-        let body = format!("[{}]", try!(response.get_encoded_body()));
-        let fixed = body.replace("}{", "},{");
+        let body = try!(response.get_encoded_body());
         
-        let status: serde_json::Value = match serde_json::from_str(&fixed) {
+        let status: serde_json::Value = match serde_json::from_str(&body) {
             Ok(status) => status,
             Err(e) => {
                 return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
