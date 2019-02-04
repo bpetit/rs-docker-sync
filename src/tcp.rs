@@ -1,14 +1,17 @@
 use std;
 use std::io::{Read, Write};
+#[cfg(openssl)]
 use std::path::Path;
 use std::error::Error;
 
+#[cfg(openssl)]
 use openssl;
 
 pub struct TcpStream {
     tls: bool,
     stream: std::net::TcpStream,
-    ssl_stream: Option<openssl::ssl::SslStream<std::net::TcpStream>>
+    #[cfg(openssl)]
+    ssl_stream: Option<openssl::ssl::SslStream<std::net::TcpStream>>,
 }
 
 impl TcpStream {
@@ -18,12 +21,14 @@ impl TcpStream {
         let tcp_stream = TcpStream {
             tls: false,
             stream: stream,
+            #[cfg(openssl)]
             ssl_stream: None,
         };
         
         return Ok(tcp_stream);
     }
 
+    #[cfg(openssl)]
     pub fn set_ssl_context(&mut self, key: &Path, cert: &Path, ca: &Path) -> std::io::Result<()> {
         self.tls = true;
 
@@ -86,11 +91,16 @@ impl TcpStream {
                 let raw = try!(TcpStream::read_from_stream(&mut stream));
                 raw
             }
+            #[cfg(openssl)]
             true => {
                 let mut ssl_stream = self.ssl_stream.as_mut().unwrap();
                 let _ = ssl_stream.write(buf);
                 let raw = try!(TcpStream::read_from_stream(&mut ssl_stream));
                 raw
+            }
+            #[cfg(not(openssl))]
+            true => {
+                unimplemented!();
             }
         };
         return Ok(raw);
