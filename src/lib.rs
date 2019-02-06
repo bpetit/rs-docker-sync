@@ -7,6 +7,7 @@ extern crate serde;
 extern crate serde_json;
 
 // import external libraries
+#[cfg(openssl)]
 extern crate openssl;
 extern crate unix_socket;
 

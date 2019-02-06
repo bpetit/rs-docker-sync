@@ -1,5 +1,6 @@
 use std;
 use std::error::Error;
+#[cfg(openssl)]
 use std::path::Path;
 
 use tcp::TcpStream;
@@ -80,6 +81,7 @@ impl Docker {
         return Ok(docker);
     }
 
+    #[cfg(openssl)]
     pub fn set_tls(&mut self, key: &Path, cert: &Path, ca: &Path) -> std::io::Result<()> {
         match self.tcp_stream {
             Some(_) => {
