@@ -1,25 +1,30 @@
 use std;
 use std::error::Error;
-#[cfg(openssl)]
-use std::path::Path;
 
-use tcp::TcpStream;
-use unix::UnixStream;
-use http::{self, Response};
+use crate::container::{Container, ContainerInfo};
+use crate::network::{Network, NetworkCreate};
+use crate::process::{Process, Top};
+use crate::stats::Stats;
+use crate::system::SystemInfo;
+use crate::image::{Image, ImageStatus};
+use crate::filesystem::FilesystemChange;
+use crate::version::Version;
 
-use container::{Container, ContainerInfo};
-use network::{Network, NetworkCreate};
-use process::{Process, Top};
-use stats::Stats;
-use system::SystemInfo;
-use image::{Image, ImageStatus};
-use filesystem::FilesystemChange;
-use version::Version;
+use futures::{Future, Stream};
+
+use hyper::{Client, Body, Method, Request, Uri};
+
+use hyper::client::HttpConnector;
+
+use hyperlocal::UnixConnector;
+
+use tokio::runtime::Runtime;
 
 pub struct Docker {
     protocol: Protocol,
-    unix_stream: Option<UnixStream>,
-    tcp_stream: Option<TcpStream>,
+    path: String,
+    hyperlocal_client: Option<Client<UnixConnector, Body>>,
+    hyper_client: Option<Client<HttpConnector, Body>>,
 }
 
 enum Protocol {
@@ -27,15 +32,8 @@ enum Protocol {
     TCP
 }
 
-pub fn create_http_request(http_method: &str, url: &str, body: &str) -> String {
-    let mut fixed_body:String = String::from(body);
-    if fixed_body.len() > 0 {
-        fixed_body.push_str("\r\n");
-    }
-    format!("{} {} HTTP/1.1\r\nHost: localhost\r\nUser-Agent: rs_docker 1.0\r\nContent-Type: application/json\r\nAccept: application/json\r\nContent-Length: {}\r\n\r\n{}", http_method, url, body.to_string().len(), fixed_body)
-}
-
-impl Docker {
+impl Docker
+{
     pub fn connect(addr: &str) -> std::io::Result<Docker> {
         let components: Vec<&str> = addr.split("://").collect();
         if components.len() != 2 {
@@ -57,41 +55,50 @@ impl Docker {
             }
         };
 
-        let unix_stream = match protocol {
+        let hyperlocal_client = match protocol {
             Protocol::UNIX => {
-                let stream = try!(UnixStream::connect(&*path));
-                Some(stream)
-            }
+                let unix_connector = UnixConnector::new();
+                Some(Client::builder().build(unix_connector))
+            },
             _ => None
         };
 
-        let tcp_stream = match protocol {
+        let hyper_client = match protocol {
             Protocol::TCP => {
-                let stream = try!(TcpStream::connect(&*path));
-                Some(stream)
-            }
+                Some(Client::new())
+            },
             _ => None
         };
 
         let docker = Docker {
             protocol: protocol,
-            unix_stream: unix_stream,
-            tcp_stream: tcp_stream
+            path: path,
+            hyperlocal_client: hyperlocal_client,
+            hyper_client: hyper_client,
         };
         return Ok(docker);
     }
 
-    #[cfg(openssl)]
-    pub fn set_tls(&mut self, key: &Path, cert: &Path, ca: &Path) -> std::io::Result<()> {
-        match self.tcp_stream {
-            Some(_) => {
-                let mut tcp_stream = self.tcp_stream.as_mut().unwrap();
-                try!(tcp_stream.set_ssl_context(key, cert, ca));
-            }
-            None => {}
-        }
-
-        return Ok(());
+    fn request(&self, method: Method, url: &str, body: String) -> String {
+        let req = Request::builder()
+            .uri(match self.protocol {
+                Protocol::UNIX => hyperlocal::Uri::new(self.path.clone(), url).into(),
+                _ => format!("{}{}", self.path, url).parse::<Uri>().unwrap()
+            })
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .method(method)
+            .body(Body::from(body))
+            .expect("failed to build request");
+        let mut rt = Runtime::new().unwrap();
+        rt.block_on(match self.protocol {
+            Protocol::UNIX => self.hyperlocal_client.as_ref().unwrap().request(req),
+            Protocol::TCP => self.hyper_client.as_ref().unwrap().request(req)
+        }.and_then(|res| {
+            res.into_body().concat2()
+        }).map(|body| {
+            String::from_utf8(body.to_vec()).unwrap()
+        })).unwrap()
     }
 
     // 
@@ -99,11 +106,7 @@ impl Docker {
     //
 
     pub fn get_networks(&mut self) -> std::io::Result<Vec<Network>> {
-        let request = create_http_request("GET", "/networks", "");
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        try!(self.get_status_code(&response));
-        let body = try!(response.get_encoded_body());
+        let body = self.request(Method::GET, "/networks", "".to_string());
 
         match serde_json::from_str(&body) {
             Ok(networks) => Ok(networks),
@@ -112,10 +115,7 @@ impl Docker {
     }
 
     pub fn create_network(&mut self, network: NetworkCreate) -> std::io::Result<String> {
-        let request = create_http_request("POST", "/networks/create", &serde_json::to_string(&network).unwrap());
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        let body = try!(response.get_encoded_body());
+        let body = self.request(Method::POST, "/networks/create", serde_json::to_string(&network).unwrap());
         
         let status: serde_json::Value = match serde_json::from_str(&body) {
             Ok(status) => status,
@@ -131,10 +131,7 @@ impl Docker {
     }
 
     pub fn delete_network(&mut self, id_or_name: &str) -> std::io::Result<String> {
-        let request = create_http_request("DELETE", &format!("/networks/{}", id_or_name), "");
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        let body = try!(response.get_encoded_body());
+        let body = self.request(Method::DELETE, &format!("/networks/{}", id_or_name), "".to_string());
 
         let status: serde_json::Value = match serde_json::from_str(&body) {
             Ok(status) => status,
@@ -156,11 +153,7 @@ impl Docker {
             false => "0"
         };
         
-        let request = create_http_request("GET", &format!("/containers/json?all={}&size=1", a), "");
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        try!(self.get_status_code(&response));
-        let body = try!(response.get_encoded_body());
+        let body = self.request(Method::GET, &format!("/containers/json?all={}&size=1", a), "".to_string());
 
         let containers: Vec<Container> = match serde_json::from_str(&body) {
             Ok(containers) => containers,
@@ -175,11 +168,7 @@ impl Docker {
     }
     
     pub fn get_processes(&mut self, container: &Container) -> std::io::Result<Vec<Process>> {
-        let request = create_http_request("GET", &format!("/containers/{}/top", container.Id), "");
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        try!(self.get_status_code(&response));
-        let body = try!(response.get_encoded_body()); 
+        let body = self.request(Method::GET, &format!("/containers/{}/top", container.Id), "".to_string());
         
         let top: Top = match serde_json::from_str(&body) {
             Ok(top) => top,
@@ -251,11 +240,7 @@ impl Docker {
             return Err(err);
         }
 
-        let request = create_http_request("GET", &format!("/containers/{}/stats", container.Id), "");
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        try!(self.get_status_code(&response));
-        let body = try!(response.get_encoded_body());
+        let body = self.request(Method::GET, &format!("/containers/{}/stats", container.Id), "".to_string());
         
         let stats: Stats = match serde_json::from_str(&body) {
             Ok(stats) => stats,
@@ -273,10 +258,7 @@ impl Docker {
     //
     
     pub fn create_image(&mut self, image: String, tag: String) -> std::io::Result<Vec<ImageStatus>> {
-        let request = create_http_request("POST", &format!("/images/create?fromImage={}&tag={}", image, tag), "");
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        let body = format!("[{}]", try!(response.get_encoded_body()));
+        let body = format!("[{}]", self.request(Method::POST, &format!("/images/create?fromImage={}&tag={}", image, tag), "".to_string()));
         let fixed = body.replace("}{", "},{");
         
         let statuses: Vec<ImageStatus> = match serde_json::from_str(&fixed) {
@@ -295,11 +277,7 @@ impl Docker {
             true => "1",
             false => "0"
         };
-        let request = create_http_request("GET", &format!("/images/json?all={}", a), "");
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        try!(self.get_status_code(&response));
-        let body = try!(response.get_encoded_body());
+        let body = self.request(Method::GET, &format!("/images/json?all={}", a), "".to_string());
         
         let images: Vec<Image> = match serde_json::from_str(&body) {
             Ok(images) => images,
@@ -313,11 +291,7 @@ impl Docker {
     }
 
     pub fn get_system_info(&mut self) -> std::io::Result<SystemInfo> {
-        let request = create_http_request("GET", "/info", "");
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        try!(self.get_status_code(&response));
-        let body = try!(response.get_encoded_body());
+        let body = self.request(Method::GET, "/info", "".to_string());
         
         let info: SystemInfo = match serde_json::from_str(&body) {
             Ok(info) => info,
@@ -331,11 +305,7 @@ impl Docker {
     }
 
     pub fn get_container_info(&mut self, container: &Container) -> std::io::Result<ContainerInfo> {
-        let request = create_http_request("GET", &format!("/containers/{}/json", container.Id), "");
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        try!(self.get_status_code(&response));
-        let body = try!(response.get_encoded_body());
+        let body = self.request(Method::GET, &format!("/containers/{}/json", container.Id), "".to_string());
         
         let container_info: ContainerInfo = match serde_json::from_str(&body) {
             Ok(body) => body,
@@ -349,11 +319,7 @@ impl Docker {
     }
     
     pub fn get_filesystem_changes(&mut self, container: &Container) -> std::io::Result<Vec<FilesystemChange>> {
-        let request = create_http_request("GET", &format!("/containers/{}/changes", container.Id), "");
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        try!(self.get_status_code(&response));
-        let body = try!(response.get_encoded_body());
+        let body = self.request(Method::GET, &format!("/containers/{}/changes", container.Id), "".to_string());
         
         let filesystem_changes: Vec<FilesystemChange> = match serde_json::from_str(&body) {
             Ok(body) => body,
@@ -366,68 +332,28 @@ impl Docker {
         return Ok(filesystem_changes);
     }
 
-    pub fn export_container(&mut self, container: &Container) -> std::io::Result<Vec<u8>> {
-        let request = create_http_request("GET", &format!("/containers/{}/export", container.Id), "");
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        try!(self.get_status_code(&response));
+    pub fn export_container(&mut self, container: &Container) -> std::io::Result<String> {
+        let body = self.request(Method::GET, &format!("/containers/{}/export", container.Id), "".to_string());
         
-        return Ok(response.body);
+        return Ok(body);
     }
 
      pub fn ping(&mut self) -> std::io::Result<String> {
-        let request = create_http_request("GET", "/_ping", "");
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        try!(self.get_status_code(&response));
-        let encoded_body = try!(response.get_encoded_body());
+        let body = self.request(Method::GET, "/_ping", "".to_string());
 
-        return Ok(encoded_body);
+        return Ok(body);
      }
 
     pub fn get_version(&mut self) -> std::io::Result<Version> {
-        let request = create_http_request("GET", "/version", "");
-        let raw = try!(self.read(request.as_bytes()));
-        let response = try!(self.get_response(&raw));
-        try!(self.get_status_code(&response));
-        let encoded_body = try!(response.get_encoded_body());
+        let body = self.request(Method::GET, "/version", "".to_string());
 
-        let version: Version = match serde_json::from_str(&encoded_body){
-            Ok(body) => body,
+        let version: Version = match serde_json::from_str(&body){
+            Ok(r_body) => r_body,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput, e.description());
                 return Err(err);
             }
         };
         return Ok(version);
-    }
-
-    fn read(&mut self, buf: &[u8]) -> std::io::Result<Vec<u8>> {
-        return match self.protocol {
-            Protocol::UNIX => {
-                let mut stream = self.unix_stream.as_mut().unwrap();
-                stream.read(buf)
-            }
-            Protocol::TCP => {
-                let mut stream = self.tcp_stream.as_mut().unwrap();
-                stream.read(buf)
-            }
-        };
-    }
-
-    fn get_response(&self, raw: &Vec<u8>) -> std::io::Result<Response> {
-        http::get_response(raw)
-    }
-
-    fn get_status_code(&self, response: &Response) -> std::io::Result<()> {
-        let status_code = response.status_code;
-        match status_code / 100 {
-            2 => { Ok(()) }
-            _ => {
-                let desc = format!("Docker returns an error with {} status code.", status_code);
-                let err = std::io::Error::new(std::io::ErrorKind::InvalidInput, desc);
-                return Err(err);
-            }
-        }
     }
 }

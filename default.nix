@@ -6,6 +6,5 @@ stdenv.mkDerivation {
     	binutils
     	gcc
     	pkgconfig
-    	openssl
     ];
 }

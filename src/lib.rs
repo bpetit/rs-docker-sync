@@ -7,14 +7,13 @@ extern crate serde;
 extern crate serde_json;
 
 // import external libraries
-#[cfg(openssl)]
-extern crate openssl;
-extern crate unix_socket;
+
+extern crate hyper;
+extern crate hyperlocal;
+extern crate futures;
+extern crate tokio_core;
 
 // declare modules
-mod tcp;
-mod unix;
-mod http;
 mod test;
 mod docker;
 pub mod container;

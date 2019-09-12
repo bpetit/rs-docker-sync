@@ -1,7 +1,8 @@
 [package]
+edition = "2018"
 name = "rs-docker"
 description = "Docker Remote API in Rust"
-version = "0.0.51"
+version = "0.0.52"
 authors = ["Thiago Areias <kblo.thiago@gmail.com>"]
 license = "Apache-2.0"
 homepage = "https://gitlab.com/kblobr/rust-docker"
@@ -11,11 +12,11 @@ readme = "README.md"
 keywords = ["docker"]
 
 [dependencies]
-openssl = { version = "0.10.16", optional = true }
-unix_socket = "0.5.0"
-serde = "1.0.85"
-serde_derive = "1.0.85"
-serde_json = "1.0.37"
-
-[features]
-default = ["openssl"]
+serde = "1.0.100"
+serde_derive = "1.0.100"
+serde_json = "1.0.40"
+hyper = "0.12.34"
+hyperlocal = "0.6.0"
+futures = "0.1.29"
+tokio = "0.1.22"
+tokio-core = "0.1.17"

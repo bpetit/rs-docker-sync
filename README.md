@@ -16,7 +16,7 @@ This is a Docker Remote API binding in Rust. Documentation is available [here](h
 
 ```
 [dependencies]
-rs-docker = "0.0.51"
+rs-docker = "0.0.52"
 ```
 
 ```rust
@@ -33,20 +33,8 @@ fn main() {
 ```
 
 ## Debug
-* OpenSSL (>= v1.0.0)
 * Rust (>= v1.4.0)
 * Docker (>= v1.5.0)
-
-### OpenSSL
-
-#### Mac OS X
-```bash
-brew install openssl
-brew link --force openssl
-
-export OPENSSL_INCLUDE_DIR=/usr/local/opt/openssl/include
-export OPENSSL_ROOT_DIR=/usr/local/opt/openssl
-```
 
 ## Examples
 
