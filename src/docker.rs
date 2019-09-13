@@ -133,14 +133,10 @@ impl Docker
     pub fn delete_network(&mut self, id_or_name: &str) -> std::io::Result<String> {
         let body = self.request(Method::DELETE, &format!("/networks/{}", id_or_name), "".to_string());
 
-        let status: serde_json::Value = match serde_json::from_str(&body) {
-            Ok(status) => status,
-            Err(e) => {
-                return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.description()));
-            }
-        };
-        return Ok(status["message"].to_string());
+        match serde_json::from_str::<serde_json::Value>(&body) {
+            Ok(status) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,status["message"].to_string())),
+            Err(_e) => Ok("".to_string())
+        }
     }
 
     //
