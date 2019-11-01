@@ -20,6 +20,9 @@ use hyperlocal::UnixConnector;
 
 use tokio::runtime::Runtime;
 
+use std::fs::File;
+use std::io::Read;
+
 pub struct Docker {
     protocol: Protocol,
     path: String,
@@ -77,6 +80,28 @@ impl Docker
             hyper_client: hyper_client,
         };
         return Ok(docker);
+    }
+
+    fn request_file(&self, method: Method, url: &str, file: Vec<u8>, content_type: &str) -> String {
+        let req = Request::builder()
+            .uri(match self.protocol {
+                Protocol::UNIX => hyperlocal::Uri::new(self.path.clone(), url).into(),
+                _ => format!("{}{}", self.path, url).parse::<Uri>().unwrap()
+            })
+            .header("Content-Type", content_type)
+            .header("Accept", "application/json")
+            .method(method)
+            .body(Body::from(file))
+            .expect("failed to build request");
+        let mut rt = Runtime::new().unwrap();
+        rt.block_on(match self.protocol {
+            Protocol::UNIX => self.hyperlocal_client.as_ref().unwrap().request(req),
+            Protocol::TCP => self.hyper_client.as_ref().unwrap().request(req)
+        }.and_then(|res| {
+            res.into_body().concat2()
+        }).map(|body| {
+            String::from_utf8(body.to_vec()).unwrap()
+        })).unwrap()
     }
 
     fn request(&self, method: Method, url: &str, body: String) -> String {
@@ -253,6 +278,16 @@ impl Docker
     // Image
     //
     
+    pub fn build_image(&mut self, mut dockerfile: File, t: &str) -> std::io::Result<String> {
+        let mut data = Vec::new();
+        dockerfile.read_to_end(&mut data).expect("Could not read the dockerfile tar");
+        let body = self.request_file(Method::POST, &format!("/build?t={}", t), data, "application/x-tar");
+        match serde_json::from_str::<serde_json::Value>(&body) {
+            Ok(status) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,status["message"].to_string())),
+            Err(_e) => Ok("".to_string())
+        }
+    }
+
     pub fn create_image(&mut self, image: String, tag: String) -> std::io::Result<Vec<ImageStatus>> {
         let body = format!("[{}]", self.request(Method::POST, &format!("/images/create?fromImage={}&tag={}", image, tag), "".to_string()));
         let fixed = body.replace("}{", "},{");
