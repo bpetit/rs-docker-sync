@@ -2,7 +2,7 @@
 edition = "2018"
 name = "rs-docker"
 description = "Docker Remote API in Rust"
-version = "0.0.54"
+version = "0.0.55"
 authors = ["Thiago Areias <kblo.thiago@gmail.com>"]
 license = "Apache-2.0"
 homepage = "https://gitlab.com/kblobr/rust-docker"

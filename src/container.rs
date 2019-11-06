@@ -144,3 +144,27 @@ impl std::fmt::Display for ContainerInfo {
         write!(f, "{}", self.Id)
     }
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
+pub struct ContainerCreate {
+    pub Name: String,
+    pub Image: Option<String>,
+    pub Labels: Option<HashMap<String, String>>
+}
+
+impl Clone for ContainerCreate {
+    fn clone(&self) -> Self {
+        ContainerCreate {
+            Name: self.Name.clone(),
+            Image: self.Image.clone(),
+            Labels: self.Labels.clone()
+        }
+    }
+}
+
+impl std::fmt::Display for ContainerCreate {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::result::Result<(), std::fmt::Error> {
+        write!(f, "{}", self.Name)
+    }
+}

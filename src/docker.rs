@@ -1,7 +1,7 @@
 use std;
 use std::error::Error;
 
-use crate::container::{Container, ContainerInfo};
+use crate::container::{Container, ContainerInfo, ContainerCreate};
 use crate::network::{Network, NetworkCreate};
 use crate::process::{Process, Top};
 use crate::stats::Stats;
@@ -19,9 +19,6 @@ use hyper::client::HttpConnector;
 use hyperlocal::UnixConnector;
 
 use tokio::runtime::Runtime;
-
-use std::fs::File;
-use std::io::Read;
 
 pub struct Docker {
     protocol: Protocol,
@@ -168,6 +165,22 @@ impl Docker
     // Containers
     //
     
+    pub fn create_container(&mut self, container: ContainerCreate) -> std::io::Result<String> {
+        let body = self.request(Method::POST, &format!("/containers/create?name={}", container.Name), serde_json::to_string(&container).unwrap());
+
+        let status: serde_json::Value = match serde_json::from_str(&body) {
+            Ok(status) => status,
+            Err(e) => {
+                return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
+                                              e.description()));
+            }
+        };
+        match status.get("Id") {
+            Some(id) => Ok(id.to_string()),
+            _ => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, status.get("message").unwrap().to_string()))
+        }
+    }
+
     pub fn get_containers(&mut self, all: bool) -> std::io::Result<Vec<Container>> {
         let a = match all {
             true => "1",
@@ -278,9 +291,22 @@ impl Docker
     // Image
     //
     
-    pub fn build_image(&mut self, mut dockerfile: File, t: &str) -> std::io::Result<String> {
-        let mut data = Vec::new();
-        dockerfile.read_to_end(&mut data).expect("Could not read the dockerfile tar");
+    pub fn delete_image(&mut self, id_or_name: &str) -> std::io::Result<String> {
+        let body = self.request(Method::DELETE, &format!("/images/{}", id_or_name), "".to_string());
+
+        match serde_json::from_str::<serde_json::Value>(&body) {
+            Ok(data) => {
+                if data.is_array() {
+                    Ok("".to_string())
+                } else {
+                    Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, data["message"].to_string()))
+                }
+            },
+            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, e.description()))
+        }
+    }
+
+    pub fn build_image(&mut self, data: Vec<u8>, t: String) -> std::io::Result<String> {
         let body = self.request_file(Method::POST, &format!("/build?t={}", t), data, "application/x-tar");
         match serde_json::from_str::<serde_json::Value>(&body) {
             Ok(status) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,status["message"].to_string())),
