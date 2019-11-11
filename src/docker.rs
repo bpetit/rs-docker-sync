@@ -165,8 +165,17 @@ impl Docker
     // Containers
     //
     
-    pub fn create_container(&mut self, container: ContainerCreate) -> std::io::Result<String> {
-        let body = self.request(Method::POST, &format!("/containers/create?name={}", container.Name), serde_json::to_string(&container).unwrap());
+    pub fn delete_container(&mut self, id_or_name: &str) -> std::io::Result<String> {
+        let body = self.request(Method::DELETE, &format!("/containers/{}", id_or_name), "".to_string());
+
+        match serde_json::from_str::<serde_json::Value>(&body) {
+            Ok(status) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,status["message"].to_string())),
+            Err(_e) => Ok("".to_string())
+        }
+    }
+
+    pub fn create_container(&mut self, name: String, container: ContainerCreate) -> std::io::Result<String> {
+        let body = self.request(Method::POST, &format!("/containers/create?name={}", name), serde_json::to_string(&container).unwrap());
 
         let status: serde_json::Value = match serde_json::from_str(&body) {
             Ok(status) => status,
