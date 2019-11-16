@@ -16,7 +16,7 @@ This is a Docker Remote API binding in Rust. Documentation is available [here](h
 
 ```
 [dependencies]
-rs-docker = "0.0.56"
+rs-docker = "0.0.57"
 ```
 
 ```rust

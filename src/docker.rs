@@ -147,7 +147,7 @@ impl Docker
             }
         };
         match status.get("Id") {
-            Some(id) => Ok(id.to_string()),
+            Some(id) => Ok(id.as_str().unwrap().to_string()),
             _ => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, status.get("message").unwrap().to_string()))
         }
     }
@@ -165,6 +165,24 @@ impl Docker
     // Containers
     //
     
+    pub fn start_container(&mut self, id_or_name: &str) -> std::io::Result<String> {
+        let body = self.request(Method::POST, &format!("/containers/{}/start", id_or_name), "".to_string());
+
+        match serde_json::from_str::<serde_json::Value>(&body) {
+            Ok(status) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,status["message"].to_string())),
+            Err(_e) => Ok("".to_string())
+        }
+    }
+
+    pub fn stop_container(&mut self, id_or_name: &str) -> std::io::Result<String> {
+        let body = self.request(Method::POST, &format!("/containers/{}/stop", id_or_name), "".to_string());
+
+        match serde_json::from_str::<serde_json::Value>(&body) {
+            Ok(status) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,status["message"].to_string())),
+            Err(_e) => Ok("".to_string())
+        }
+    }
+
     pub fn delete_container(&mut self, id_or_name: &str) -> std::io::Result<String> {
         let body = self.request(Method::DELETE, &format!("/containers/{}", id_or_name), "".to_string());
 
@@ -185,7 +203,7 @@ impl Docker
             }
         };
         match status.get("Id") {
-            Some(id) => Ok(id.to_string()),
+            Some(id) => Ok(id.as_str().unwrap().to_string()),
             _ => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, status.get("message").unwrap().to_string()))
         }
     }
