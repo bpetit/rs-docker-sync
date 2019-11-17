@@ -147,16 +147,66 @@ impl std::fmt::Display for ContainerInfo {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
+pub struct PortBinding {
+    pub HostIp: Option<String>,
+    pub HostPort: String,
+}
+
+impl Clone for PortBinding {
+    fn clone(&self) -> Self {
+        PortBinding {
+            HostIp: self.HostIp.clone(),
+            HostPort: self.HostPort.clone(),
+        }
+    }
+}
+
+impl std::fmt::Display for PortBinding {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::result::Result<(), std::fmt::Error> {
+        write!(f, "{}", self.HostPort)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
+pub struct HostConfigCreate {
+    pub NetworkMode: Option<String>,
+    pub PublishAllPorts: Option<bool>,
+    pub PortBindings: Option<HashMap<String, Vec<PortBinding>>>,
+}
+
+impl Clone for HostConfigCreate {
+    fn clone(&self) -> Self {
+        HostConfigCreate {
+            NetworkMode: self.NetworkMode.clone(),
+            PublishAllPorts: self.PublishAllPorts.clone(),
+            PortBindings: self.PortBindings.clone()
+        }
+    }
+}
+
+impl std::fmt::Display for HostConfigCreate {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::result::Result<(), std::fmt::Error> {
+        write!(f, "{:#?}", self.NetworkMode)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct ContainerCreate {
     pub Image: String,
-    pub Labels: Option<HashMap<String, String>>
+    pub Labels: Option<HashMap<String, String>>,
+    pub ExposedPorts: Option<HashMap<String, HashMap<i32, i32>>>,
+    pub HostConfig: Option<HostConfigCreate>,
 }
 
 impl Clone for ContainerCreate {
     fn clone(&self) -> Self {
         ContainerCreate {
             Image: self.Image.clone(),
-            Labels: self.Labels.clone()
+            Labels: self.Labels.clone(),
+            ExposedPorts: self.ExposedPorts.clone(),
+            HostConfig: self.HostConfig.clone()
         }
     }
 }
