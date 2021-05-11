@@ -1,5 +1,4 @@
 use std;
-use std::error::Error;
 
 use crate::container::{Container, ContainerInfo, ContainerCreate};
 use crate::network::{Network, NetworkCreate};
@@ -132,7 +131,7 @@ impl Docker
 
         match serde_json::from_str(&body) {
             Ok(networks) => Ok(networks),
-            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, e.description()))
+            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, e.to_string()))
         }
     }
 
@@ -143,7 +142,7 @@ impl Docker
             Ok(status) => status,
             Err(e) => {
                 return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.description()));
+                                              e.to_string()));
             }
         };
         match status.get("Id") {
@@ -199,7 +198,7 @@ impl Docker
             Ok(status) => status,
             Err(e) => {
                 return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.description()));
+                                              e.to_string()));
             }
         };
         match status.get("Id") {
@@ -220,7 +219,7 @@ impl Docker
             Ok(containers) => containers,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.description());
+                                              e.to_string());
                 return Err(err);
             }
         };
@@ -235,7 +234,7 @@ impl Docker
             Ok(top) => top,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.description());
+                                              e.to_string());
                 return Err(err);
             }
         };
@@ -307,7 +306,7 @@ impl Docker
             Ok(stats) => stats,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.description());
+                                              e.to_string());
                 return Err(err);
             }
         };
@@ -329,7 +328,7 @@ impl Docker
                     Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, data["message"].to_string()))
                 }
             },
-            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, e.description()))
+            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, e.to_string()))
         }
     }
 
@@ -349,7 +348,7 @@ impl Docker
             Ok(statuses) => statuses,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.description());
+                                              e.to_string());
                 return Err(err);
             }
         };
@@ -367,7 +366,7 @@ impl Docker
             Ok(images) => images,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.description());
+                                              e.to_string());
                 return Err(err);
             }
         };
@@ -381,7 +380,7 @@ impl Docker
             Ok(info) => info,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.description());
+                                              e.to_string());
                 return Err(err);
             }
         };
@@ -395,7 +394,7 @@ impl Docker
             Ok(body) => body,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.description());
+                                              e.to_string());
                 return Err(err);
             }
         };
@@ -409,7 +408,7 @@ impl Docker
             Ok(body) => body,
             Err(e) => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.description());
+                                              e.to_string());
                 return Err(err);
             }
         };
@@ -434,7 +433,7 @@ impl Docker
         let version: Version = match serde_json::from_str(&body){
             Ok(r_body) => r_body,
             Err(e) => {
-                let err = std::io::Error::new(std::io::ErrorKind::InvalidInput, e.description());
+                let err = std::io::Error::new(std::io::ErrorKind::InvalidInput, e.to_string());
                 return Err(err);
             }
         };
