@@ -108,20 +108,19 @@ pub struct BlkioStat {
 
 impl Clone for Stats {
     fn clone(&self) -> Stats {
-        let stats = Stats {
+        Stats {
             read: self.read.clone(),
             network: self.network.clone(),
             memory_stats: self.memory_stats.clone(),
             cpu_stats: self.cpu_stats.clone(),
             blkio_stats: self.blkio_stats.clone()
-        };
-        return stats;
+        }
     }
 }
 
 impl Clone for Network {
     fn clone(&self) -> Self {
-        let network = Network {
+        Network {
             rx_dropped: self.rx_dropped,
             rx_bytes: self.rx_bytes,
             rx_errors: self.rx_errors,
@@ -130,27 +129,25 @@ impl Clone for Network {
             rx_packets: self.rx_packets,
             tx_errors: self.tx_errors,
             tx_bytes: self.tx_bytes
-        };
-        return network;
+        }
     }
 }
 
 impl Clone for MemoryStats {
     fn clone(&self) -> Self {
-        let memory_stats = MemoryStats {
+        MemoryStats {
             max_usage: self.max_usage,
             usage: self.usage,
             failcnt: self.failcnt,
             limit: self.limit,
             stats: self.stats.clone()
-        };
-        return memory_stats;
+        }
     }
 }
 
 impl Clone for MemoryStat {
     fn clone(&self) -> Self {
-        let memory_stat = MemoryStat {
+        MemoryStat {
             total_pgmajfault: self.total_pgmajfault,
             cache: self.cache,
             mapped_file: self.mapped_file,
@@ -183,48 +180,44 @@ impl Clone for MemoryStat {
             total_pgpgin: self.total_pgpgin,
             swap: self.swap,
             total_swap: self.total_swap
-        };
-        return memory_stat;
+        }
     }
 }
 
 impl Clone for CpuStats {
     fn clone(&self) -> Self {
-        let cpu_stats = CpuStats {
+        CpuStats {
             cpu_usage: self.cpu_usage.clone(),
             system_cpu_usage: self.system_cpu_usage,
             throttling_data: self.throttling_data.clone()
-        };
-        return cpu_stats;
+        }
     }
 }
 
 impl Clone for CpuUsage {
     fn clone(&self) -> Self {
-        let cpu_usage = CpuUsage {
+        CpuUsage {
             percpu_usage: self.percpu_usage.clone(),
             usage_in_usermode: self.usage_in_usermode,
             total_usage: self.total_usage,
             usage_in_kernelmode: self.usage_in_kernelmode
-        };
-        return cpu_usage;
+        }
     }
 }
 
 impl Clone for ThrottlingData {
     fn clone(&self) -> Self {
-        let throttling_data = ThrottlingData {
+        ThrottlingData {
             periods: self.periods,
             throttled_periods: self.throttled_periods,
             throttled_time: self.throttled_time
-        };
-        return throttling_data;
+        }
     }
 }
 
 impl Clone for BlkioStats {
     fn clone(&self) -> Self {
-        let blkio_stats = BlkioStats {
+        BlkioStats {
             io_service_bytes_recursive: self.io_service_bytes_recursive.clone(),
             io_serviced_recursive: self.io_serviced_recursive.clone(),
             io_queue_recursive: self.io_queue_recursive.clone(),
@@ -233,19 +226,17 @@ impl Clone for BlkioStats {
             io_merged_recursive: self.io_merged_recursive.clone(),
             io_time_recursive: self.io_time_recursive.clone(),
             sectors_recursive: self.sectors_recursive.clone()
-        };
-        return blkio_stats;
+        }
     }
 }
 
 impl Clone for BlkioStat {
     fn clone(&self) -> Self {
-        let blkio_stat = BlkioStat {
+        BlkioStat {
             major: self.major,
             minor: self.minor,
             op: self.op.clone(),
             value: self.value
-        };
-        return blkio_stat;
+        }
     }
 }

@@ -28,7 +28,7 @@ pub struct SystemInfo {
 
 impl Clone for SystemInfo {
     fn clone(&self) -> Self {
-        let system_info = SystemInfo {
+        SystemInfo {
             Containers: self.Containers,
             Images: self.Images,
             Driver: self.Driver.clone(),
@@ -52,7 +52,6 @@ impl Clone for SystemInfo {
             Labels: self.Labels.clone(),
             DockerRootDir: self.DockerRootDir.clone(),
             OperatingSystem: self.OperatingSystem.clone()
-        };
-        return system_info;
+        }
     }
 }

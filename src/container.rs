@@ -1,4 +1,3 @@
-use std;
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -63,21 +62,19 @@ pub struct ContainerInfo {
 
 impl Clone for Container {
     fn clone(&self) -> Self {
-        let container = Container {
+        Container {
             Id: self.Id.clone(),
             Image: self.Image.clone(),
             Status: self.Status.clone(),
             Command: self.Command.clone(),
-            Created: self.Created.clone(),
+            Created: self.Created,
             Names: self.Names.clone(),
             Ports: self.Ports.clone(),
             SizeRw: self.SizeRw,
             SizeRootFs: self.SizeRootFs,
             Labels: self.Labels.clone(),
             HostConfig: self.HostConfig.clone()
-        };
-        
-        return container;
+        }
     }
 }
 
@@ -89,28 +86,26 @@ impl std::fmt::Display for Container {
 
 impl std::clone::Clone for Port {
     fn clone(&self) -> Self {
-        let port = Port {
+        Port {
             IP: self.IP.clone(),
-            PrivatePort: self.PrivatePort.clone(),
-            PublicPort: self.PublicPort.clone(),
+            PrivatePort: self.PrivatePort,
+            PublicPort: self.PublicPort,
             Type: self.Type.clone()
-        };
-        return port;
+        }
     }
 }
 
 impl Clone for HostConfig {
     fn clone(&self) -> Self {
-        let host_config = HostConfig {
+        HostConfig {
             NetworkMode: self.NetworkMode.clone()
-        };
-        return host_config;
+        }
     }
 }
 
 impl Clone for ContainerInfo {
     fn clone(&self) -> Self {
-        let container_info = ContainerInfo {
+        ContainerInfo {
             AppArmorProfile: self.AppArmorProfile.clone(),
             Args: self.Args.clone(),
             // Config
@@ -134,8 +129,7 @@ impl Clone for ContainerInfo {
             // State
             Volumes: self.Volumes.clone(),
             VolumesRW: self.VolumesRW.clone()
-        };
-        return container_info;
+        }
     }
 }
 
@@ -179,7 +173,7 @@ impl Clone for HostConfigCreate {
     fn clone(&self) -> Self {
         HostConfigCreate {
             NetworkMode: self.NetworkMode.clone(),
-            PublishAllPorts: self.PublishAllPorts.clone(),
+            PublishAllPorts: self.PublishAllPorts,
             PortBindings: self.PortBindings.clone()
         }
     }

@@ -1,5 +1,3 @@
-use std;
-
 use crate::container::{Container, ContainerInfo, ContainerCreate};
 use crate::network::{Network, NetworkCreate};
 use crate::process::{Process, Top};
@@ -27,8 +25,8 @@ pub struct Docker {
 }
 
 enum Protocol {
-    UNIX,
-    TCP
+    Unix,
+    Tcp
 }
 
 impl Docker
@@ -45,8 +43,8 @@ impl Docker
         let path = components[1].to_string();
 
         let protocol = match protocol {
-            "unix" => Protocol::UNIX,
-            "tcp" => Protocol::TCP,
+            "unix" => Protocol::Unix,
+            "tcp" => Protocol::Tcp,
             _ => {
                 let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
                                               "The protocol is not supported.");
@@ -55,7 +53,7 @@ impl Docker
         };
 
         let hyperlocal_client = match protocol {
-            Protocol::UNIX => {
+            Protocol::Unix => {
                 let unix_connector = UnixConnector::new();
                 Some(Client::builder().build(unix_connector))
             },
@@ -63,25 +61,26 @@ impl Docker
         };
 
         let hyper_client = match protocol {
-            Protocol::TCP => {
+            Protocol::Tcp => {
                 Some(Client::new())
             },
             _ => None
         };
 
-        let docker = Docker {
-            protocol: protocol,
-            path: path,
-            hyperlocal_client: hyperlocal_client,
-            hyper_client: hyper_client,
-        };
-        return Ok(docker);
+        Ok(
+            Docker {
+                protocol,
+                path,
+                hyperlocal_client,
+                hyper_client,
+            }
+        )
     }
 
     fn request_file(&self, method: Method, url: &str, file: Vec<u8>, content_type: &str) -> String {
         let req = Request::builder()
             .uri(match self.protocol {
-                Protocol::UNIX => hyperlocal::Uri::new(self.path.clone(), url).into(),
+                Protocol::Unix => hyperlocal::Uri::new(self.path.clone(), url).into(),
                 _ => format!("{}{}", self.path, url).parse::<Uri>().unwrap()
             })
             .header("Content-Type", content_type)
@@ -91,8 +90,8 @@ impl Docker
             .expect("failed to build request");
         let mut rt = Runtime::new().unwrap();
         rt.block_on(match self.protocol {
-            Protocol::UNIX => self.hyperlocal_client.as_ref().unwrap().request(req),
-            Protocol::TCP => self.hyper_client.as_ref().unwrap().request(req)
+            Protocol::Unix => self.hyperlocal_client.as_ref().unwrap().request(req),
+            Protocol::Tcp => self.hyper_client.as_ref().unwrap().request(req)
         }.and_then(|res| {
             res.into_body().concat2()
         }).map(|body| {
@@ -103,7 +102,7 @@ impl Docker
     fn request(&self, method: Method, url: &str, body: String) -> String {
         let req = Request::builder()
             .uri(match self.protocol {
-                Protocol::UNIX => hyperlocal::Uri::new(self.path.clone(), url).into(),
+                Protocol::Unix => hyperlocal::Uri::new(self.path.clone(), url).into(),
                 _ => format!("{}{}", self.path, url).parse::<Uri>().unwrap()
             })
             .header("Content-Type", "application/json")
@@ -113,8 +112,8 @@ impl Docker
             .expect("failed to build request");
         let mut rt = Runtime::new().unwrap();
         rt.block_on(match self.protocol {
-            Protocol::UNIX => self.hyperlocal_client.as_ref().unwrap().request(req),
-            Protocol::TCP => self.hyper_client.as_ref().unwrap().request(req)
+            Protocol::Unix => self.hyperlocal_client.as_ref().unwrap().request(req),
+            Protocol::Tcp => self.hyper_client.as_ref().unwrap().request(req)
         }.and_then(|res| {
             res.into_body().concat2()
         }).map(|body| {
@@ -215,16 +214,13 @@ impl Docker
         
         let body = self.request(Method::GET, &format!("/containers/json?all={}&size=1", a), "".to_string());
 
-        let containers: Vec<Container> = match serde_json::from_str(&body) {
-            Ok(containers) => containers,
+        match serde_json::from_str(&body) {
+            Ok(containers) => Ok(containers),
             Err(e) => {
-                let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.to_string());
-                return Err(err);
+                Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
+                                              e.to_string()))
             }
-        };
-        
-        return Ok(containers);
+        }
     }
     
     pub fn get_processes(&mut self, container: &Container) -> std::io::Result<Vec<Process>> {
@@ -240,12 +236,9 @@ impl Docker
         };
 
         let mut processes: Vec<Process> = Vec::new();
-        let mut process_iter = top.Processes.iter();
-        loop {
-            let process = match process_iter.next() {
-                Some(process) => process,
-                None => { break; }
-            };
+        let process_iter = top.Processes.iter();
+
+        for process in process_iter {
 
             let mut p = Process{
                 user: String::new(),
@@ -260,14 +253,10 @@ impl Docker
                 time: None,
                 command: String::new()
             };
-            
-            let mut value_iter = process.iter();
-            let mut i: usize = 0;
-            loop {
-                let value = match value_iter.next() {
-                    Some(value) => value,
-                    None => { break; }
-                };
+
+            let i: usize = 0;
+            let value_iter = process.iter();
+            for value in value_iter {
                 let key = &top.Titles[i];
                 match key.as_ref() {
                     "USER" => { p.user = value.clone() },
@@ -283,18 +272,16 @@ impl Docker
                     "COMMAND" => { p.command = value.clone() },
                     _ => {}
                 }
-
-                i = i + 1;
             };
 
             processes.push(p);
         }
 
-        return Ok(processes);
+        Ok(processes)
     }
 
     pub fn get_stats(&mut self, container: &Container) -> std::io::Result<Stats> {
-        if container.Status.contains("Up") == false {
+        if !container.Status.contains("Up") {
             let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
                                           "The container is already stopped.");
             return Err(err);
@@ -302,15 +289,13 @@ impl Docker
 
         let body = self.request(Method::GET, &format!("/containers/{}/stats", container.Id), "".to_string());
         
-        let stats: Stats = match serde_json::from_str(&body) {
-            Ok(stats) => stats,
+        match serde_json::from_str(&body) {
+            Ok(stats) => Ok(stats),
             Err(e) => {
-                let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.to_string());
-                return Err(err);
+                Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
+                                              e.to_string()))
             }
-        };
-        return Ok(stats);
+        }
     }
 
     //
@@ -344,15 +329,13 @@ impl Docker
         let body = format!("[{}]", self.request(Method::POST, &format!("/images/create?fromImage={}&tag={}", image, tag), "".to_string()));
         let fixed = body.replace("}{", "},{");
         
-        let statuses: Vec<ImageStatus> = match serde_json::from_str(&fixed) {
-            Ok(statuses) => statuses,
+        match serde_json::from_str(&fixed) {
+            Ok(statuses) => Ok(statuses),
             Err(e) => {
-                let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.to_string());
-                return Err(err);
+                Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
+                                              e.to_string()))
             }
-        };
-        return Ok(statuses);
+        }
     }
 
     pub fn get_images(&mut self, all: bool) -> std::io::Result<Vec<Image>> {
@@ -362,81 +345,67 @@ impl Docker
         };
         let body = self.request(Method::GET, &format!("/images/json?all={}", a), "".to_string());
         
-        let images: Vec<Image> = match serde_json::from_str(&body) {
-            Ok(images) => images,
+        match serde_json::from_str(&body) {
+            Ok(images) => Ok(images),
             Err(e) => {
-                let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.to_string());
-                return Err(err);
+                Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
+                                              e.to_string()))
             }
-        };
-        return Ok(images);
+        }
     }
 
     pub fn get_system_info(&mut self) -> std::io::Result<SystemInfo> {
         let body = self.request(Method::GET, "/info", "".to_string());
         
-        let info: SystemInfo = match serde_json::from_str(&body) {
-            Ok(info) => info,
+        match serde_json::from_str(&body) {
+            Ok(info) => Ok(info),
             Err(e) => {
-                let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.to_string());
-                return Err(err);
+                Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
+                                              e.to_string()))
             }
-        };
-        return Ok(info);
+        }
     }
 
     pub fn get_container_info(&mut self, container: &Container) -> std::io::Result<ContainerInfo> {
         let body = self.request(Method::GET, &format!("/containers/{}/json", container.Id), "".to_string());
         
-        let container_info: ContainerInfo = match serde_json::from_str(&body) {
-            Ok(body) => body,
+        match serde_json::from_str(&body) {
+            Ok(body) => Ok(body),
             Err(e) => {
-                let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.to_string());
-                return Err(err);
+                Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
+                                              e.to_string()))
             }
-        };
-        return Ok(container_info);
+        }
     }
     
     pub fn get_filesystem_changes(&mut self, container: &Container) -> std::io::Result<Vec<FilesystemChange>> {
         let body = self.request(Method::GET, &format!("/containers/{}/changes", container.Id), "".to_string());
         
-        let filesystem_changes: Vec<FilesystemChange> = match serde_json::from_str(&body) {
-            Ok(body) => body,
+        match serde_json::from_str(&body) {
+            Ok(body) => Ok(body),
             Err(e) => {
-                let err = std::io::Error::new(std::io::ErrorKind::InvalidInput,
-                                              e.to_string());
-                return Err(err);
+                Err(std::io::Error::new(std::io::ErrorKind::InvalidInput,
+                                              e.to_string()))
             }
-        };
-        return Ok(filesystem_changes);
+        }
     }
 
     pub fn export_container(&mut self, container: &Container) -> std::io::Result<String> {
-        let body = self.request(Method::GET, &format!("/containers/{}/export", container.Id), "".to_string());
-        
-        return Ok(body);
+        Ok(self.request(Method::GET, &format!("/containers/{}/export", container.Id), "".to_string()))
     }
 
      pub fn ping(&mut self) -> std::io::Result<String> {
-        let body = self.request(Method::GET, "/_ping", "".to_string());
-
-        return Ok(body);
+        Ok(self.request(Method::GET, "/_ping", "".to_string()))
      }
 
     pub fn get_version(&mut self) -> std::io::Result<Version> {
         let body = self.request(Method::GET, "/version", "".to_string());
 
-        let version: Version = match serde_json::from_str(&body){
-            Ok(r_body) => r_body,
+        match serde_json::from_str(&body){
+            Ok(r_body) => Ok(r_body),
             Err(e) => {
-                let err = std::io::Error::new(std::io::ErrorKind::InvalidInput, e.to_string());
-                return Err(err);
+                Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, e.to_string()))
             }
-        };
-        return Ok(version);
+        }
     }
 }

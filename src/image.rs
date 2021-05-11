@@ -11,15 +11,14 @@ pub struct Image {
 
 impl Clone for Image {
     fn clone(&self) -> Self {
-        let image = Image {
+        Image {
             Created: self.Created,
             Id: self.Id.clone(),
             ParentId: self.ParentId.clone(),
             RepoTags: self.RepoTags.clone(),
             Size: self.Size,
             VirtualSize: self.VirtualSize
-        };
-        return image;
+        }
     }
 }
 
@@ -31,10 +30,9 @@ pub struct ImageStatus {
 
 impl Clone for ImageStatus {
     fn clone(&self) -> Self {
-        let image_status = ImageStatus {
+        ImageStatus {
             status: self.status.clone(),
             error: self.status.clone()
-        };
-        return image_status;
+        }
     }
 }
