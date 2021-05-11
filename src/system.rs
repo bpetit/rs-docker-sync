@@ -18,8 +18,8 @@ pub struct SystemInfo {
     pub InitPath: String,
     pub InitSha1: String,
     pub IndexServerAddress: String,
-    pub MemoryLimit: u64, // bool
-    pub SwapLimit: u64, // bool
+    pub MemoryLimit: u64,    // bool
+    pub SwapLimit: u64,      // bool
     pub IPv4Forwarding: u64, // bool
     pub Labels: Option<Vec<String>>,
     pub DockerRootDir: String,
@@ -51,7 +51,7 @@ impl Clone for SystemInfo {
             IPv4Forwarding: self.IPv4Forwarding,
             Labels: self.Labels.clone(),
             DockerRootDir: self.DockerRootDir.clone(),
-            OperatingSystem: self.OperatingSystem.clone()
+            OperatingSystem: self.OperatingSystem.clone(),
         }
     }
 }

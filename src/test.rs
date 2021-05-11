@@ -1,17 +1,17 @@
 #[cfg(test)]
 use container::{Container, ContainerInfo};
 #[cfg(test)]
+use filesystem::FilesystemChange;
+#[cfg(test)]
+use image::Image;
+#[cfg(test)]
 use network::Network;
 #[cfg(test)]
-use process::{Top};
+use process::Top;
 #[cfg(test)]
 use stats::Stats;
 #[cfg(test)]
 use system::SystemInfo;
-#[cfg(test)]
-use image::Image;
-#[cfg(test)]
-use filesystem::FilesystemChange;
 #[cfg(test)]
 use version::Version;
 
@@ -31,7 +31,10 @@ fn get_networks() {
     let response = get_networks_response();
     let _: Vec<Network> = match serde_json::from_str(&response) {
         Ok(body) => body,
-        Err(_) => { assert!(false); return; }
+        Err(_) => {
+            assert!(false);
+            return;
+        }
     };
 }
 
@@ -41,7 +44,10 @@ fn get_containers() {
     let response = get_containers_response();
     let _: Vec<Container> = match serde_json::from_str(&response) {
         Ok(body) => body,
-        Err(_) => { assert!(false); return; }
+        Err(_) => {
+            assert!(false);
+            return;
+        }
     };
 }
 
@@ -51,7 +57,10 @@ fn get_stats() {
     let response = get_stats_response();
     let _: Stats = match serde_json::from_str(&response) {
         Ok(body) => body,
-        Err(_) => { assert!(false); return; }
+        Err(_) => {
+            assert!(false);
+            return;
+        }
     };
 }
 
@@ -61,7 +70,10 @@ fn get_system_info() {
     let response = get_system_info_response();
     let _: SystemInfo = match serde_json::from_str(&response) {
         Ok(body) => body,
-        Err(_) => { assert!(false); return; }
+        Err(_) => {
+            assert!(false);
+            return;
+        }
     };
 }
 
@@ -71,7 +83,10 @@ fn get_images() {
     let response = get_images_response();
     let _: Vec<Image> = match serde_json::from_str(&response) {
         Ok(body) => body,
-        Err(_) => { assert!(false); return; }
+        Err(_) => {
+            assert!(false);
+            return;
+        }
     };
 }
 
@@ -81,7 +96,10 @@ fn get_container_info() {
     let response = get_container_info_response();
     let _: ContainerInfo = match serde_json::from_str(&response) {
         Ok(body) => body,
-        Err(_) => { assert!(false); return; }
+        Err(_) => {
+            assert!(false);
+            return;
+        }
     };
 }
 
@@ -91,7 +109,10 @@ fn get_processes() {
     let response = get_processes_response();
     let _: Top = match serde_json::from_str(&response) {
         Ok(body) => body,
-        Err(_) => { assert!(false); return; }
+        Err(_) => {
+            assert!(false);
+            return;
+        }
     };
 }
 
@@ -101,19 +122,25 @@ fn get_filesystem_changes() {
     let response = get_filesystem_changes_response();
     let _: Vec<FilesystemChange> = match serde_json::from_str(&response) {
         Ok(body) => body,
-        Err(_) => { assert!(false); return; }
+        Err(_) => {
+            assert!(false);
+            return;
+        }
     };
 }
 
 #[test]
 #[cfg(test)]
-fn get_version(){
+fn get_version() {
     let response = get_version_response();
     let _: Version = match serde_json::from_str(&response) {
         Ok(body) => body,
-        Err(_) => { assert!(false); return; }
+        Err(_) => {
+            assert!(false);
+            return;
+        }
     };
-}    
+}
 
 #[cfg(test)]
 fn get_networks_response() -> String {

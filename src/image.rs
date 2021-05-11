@@ -6,7 +6,7 @@ pub struct Image {
     pub ParentId: String,
     pub RepoTags: Vec<String>,
     pub Size: u64,
-    pub VirtualSize: u64
+    pub VirtualSize: u64,
 }
 
 impl Clone for Image {
@@ -17,7 +17,7 @@ impl Clone for Image {
             ParentId: self.ParentId.clone(),
             RepoTags: self.RepoTags.clone(),
             Size: self.Size,
-            VirtualSize: self.VirtualSize
+            VirtualSize: self.VirtualSize,
         }
     }
 }
@@ -25,14 +25,14 @@ impl Clone for Image {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ImageStatus {
     pub status: Option<String>,
-    pub error: Option<String>
+    pub error: Option<String>,
 }
 
 impl Clone for ImageStatus {
     fn clone(&self) -> Self {
         ImageStatus {
             status: self.status.clone(),
-            error: self.status.clone()
+            error: self.status.clone(),
         }
     }
 }

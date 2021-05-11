@@ -19,7 +19,7 @@ pub struct Process {
 #[allow(non_snake_case)]
 pub struct Top {
     pub Titles: Vec<String>,
-    pub Processes: Vec<Vec<String>>
+    pub Processes: Vec<Vec<String>>,
 }
 
 impl Display for Process {
@@ -40,7 +40,7 @@ impl Display for Process {
             s.push(',');
             s.push_str(&*v);
         }
-        
+
         if let Some(v) = self.vsz.clone() {
             s.push(',');
             s.push_str(&*v);
@@ -73,7 +73,7 @@ impl Display for Process {
 
         s.push(',');
         s.push_str(&*self.command.clone());
-        
+
         write!(f, "{}", s)
     }
 }

@@ -4,7 +4,7 @@ pub struct Stats {
     pub network: Network,
     pub memory_stats: MemoryStats,
     pub cpu_stats: CpuStats,
-    pub blkio_stats: BlkioStats
+    pub blkio_stats: BlkioStats,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -16,7 +16,7 @@ pub struct Network {
     pub tx_dropped: u64,
     pub rx_packets: u64,
     pub tx_errors: u64,
-    pub tx_bytes: u64
+    pub tx_bytes: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -25,7 +25,7 @@ pub struct MemoryStats {
     pub usage: u64,
     pub failcnt: u64,
     pub limit: u64,
-    pub stats: MemoryStat
+    pub stats: MemoryStat,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -61,14 +61,14 @@ pub struct MemoryStat {
     pub inactive_file: u64,
     pub total_pgpgin: u64,
     pub swap: u64,
-    pub total_swap: u64
+    pub total_swap: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CpuStats {
     pub cpu_usage: CpuUsage,
     pub system_cpu_usage: u64,
-    pub throttling_data: ThrottlingData
+    pub throttling_data: ThrottlingData,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -76,14 +76,14 @@ pub struct CpuUsage {
     pub percpu_usage: Vec<u64>,
     pub usage_in_usermode: u64,
     pub total_usage: u64,
-    pub usage_in_kernelmode: u64
+    pub usage_in_kernelmode: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ThrottlingData {
     pub periods: u64,
     pub throttled_periods: u64,
-    pub throttled_time: u64
+    pub throttled_time: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -95,7 +95,7 @@ pub struct BlkioStats {
     pub io_wait_time_recursive: Vec<BlkioStat>,
     pub io_merged_recursive: Vec<BlkioStat>,
     pub io_time_recursive: Vec<BlkioStat>,
-    pub sectors_recursive: Vec<BlkioStat>
+    pub sectors_recursive: Vec<BlkioStat>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -103,7 +103,7 @@ pub struct BlkioStat {
     pub major: u64,
     pub minor: u64,
     pub op: String,
-    pub value: u64
+    pub value: u64,
 }
 
 impl Clone for Stats {
@@ -113,7 +113,7 @@ impl Clone for Stats {
             network: self.network.clone(),
             memory_stats: self.memory_stats.clone(),
             cpu_stats: self.cpu_stats.clone(),
-            blkio_stats: self.blkio_stats.clone()
+            blkio_stats: self.blkio_stats.clone(),
         }
     }
 }
@@ -128,7 +128,7 @@ impl Clone for Network {
             tx_dropped: self.tx_dropped,
             rx_packets: self.rx_packets,
             tx_errors: self.tx_errors,
-            tx_bytes: self.tx_bytes
+            tx_bytes: self.tx_bytes,
         }
     }
 }
@@ -140,7 +140,7 @@ impl Clone for MemoryStats {
             usage: self.usage,
             failcnt: self.failcnt,
             limit: self.limit,
-            stats: self.stats.clone()
+            stats: self.stats.clone(),
         }
     }
 }
@@ -179,7 +179,7 @@ impl Clone for MemoryStat {
             inactive_file: self.inactive_file,
             total_pgpgin: self.total_pgpgin,
             swap: self.swap,
-            total_swap: self.total_swap
+            total_swap: self.total_swap,
         }
     }
 }
@@ -189,7 +189,7 @@ impl Clone for CpuStats {
         CpuStats {
             cpu_usage: self.cpu_usage.clone(),
             system_cpu_usage: self.system_cpu_usage,
-            throttling_data: self.throttling_data.clone()
+            throttling_data: self.throttling_data.clone(),
         }
     }
 }
@@ -200,7 +200,7 @@ impl Clone for CpuUsage {
             percpu_usage: self.percpu_usage.clone(),
             usage_in_usermode: self.usage_in_usermode,
             total_usage: self.total_usage,
-            usage_in_kernelmode: self.usage_in_kernelmode
+            usage_in_kernelmode: self.usage_in_kernelmode,
         }
     }
 }
@@ -210,7 +210,7 @@ impl Clone for ThrottlingData {
         ThrottlingData {
             periods: self.periods,
             throttled_periods: self.throttled_periods,
-            throttled_time: self.throttled_time
+            throttled_time: self.throttled_time,
         }
     }
 }
@@ -225,7 +225,7 @@ impl Clone for BlkioStats {
             io_wait_time_recursive: self.io_wait_time_recursive.clone(),
             io_merged_recursive: self.io_merged_recursive.clone(),
             io_time_recursive: self.io_time_recursive.clone(),
-            sectors_recursive: self.sectors_recursive.clone()
+            sectors_recursive: self.sectors_recursive.clone(),
         }
     }
 }
@@ -236,7 +236,7 @@ impl Clone for BlkioStat {
             major: self.major,
             minor: self.minor,
             op: self.op.clone(),
-            value: self.value
+            value: self.value,
         }
     }
 }
