@@ -14,7 +14,7 @@ Documentation is available [here](https://docs.rs/docker-sync).
 
 ```
 [dependencies]
-rs-docker-sync = "0.0.58"
+rs-docker-sync = "0.1.0"
 ```
 
 ```rust
@@ -231,7 +231,7 @@ fn main() {
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
-    
+
     let ping = match docker.ping() {
         Ok(ping) => ping,
         Err(e) => { panic!("{}", e); }
@@ -251,7 +251,7 @@ fn main() {
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
-    
+
     let version = match docker.get_version() {
         Ok(version) => version,
         Err(e) => {panic!("{}",e)}
