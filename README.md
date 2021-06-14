@@ -219,36 +219,6 @@ fn main() {
 }
 ```
 
-### Create an image
-
-```rust
-extern crate rs_docker;
-
-use rs_docker::Docker;
-
-fn main() {
-    let mut docker = match Docker::connect() {
-    	Ok(docker) => docker,
-        Err(e) => { panic!("{}", e); }
-    };
-
-    let image = "debian".to_string();
-    let tag = "latest".to_string();
-    
-    let statuses = match docker.create_image(image, tag) {
-        Ok(statuses) => statuses,
-        Err(e) => { panic!("{}", e); }
-    };
-    
-    match statuses.last() {
-        Some(last) => {
-            println!("{}", last.clone().status.unwrap());
-        }
-        None => { println!("none"); }
-    }
-}
-```
-
 ### Ping the docker server
 
 ```rust
