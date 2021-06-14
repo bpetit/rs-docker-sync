@@ -1,4 +1,4 @@
-# This is a fork
+ This is a fork
 
 This is a fork of [https://gitlab.com/kblobr/rust-docker](https://gitlab.com/kblobr/rust-docker) ([rs-docker](https://crates.io/crates/rs-docker) on crate.io) which itself is a fork from [https://github.com/ghmlee/rust-docker](https://github.com/ghmlee/rust-docker) ([docker](https://crates.io/crates/docker) on crates.io). Both repositories seemed to be no longer be maintained. The main reason for this fork, besides the maintainance, is that [Scaphandre](https://github.com/hubblo-org/scaphandre/) needed a synchronous library to talk to Docker socket.
 
@@ -20,7 +20,7 @@ rs-docker-sync = "0.1.0"
 ```rust
 extern crate rs_docker;
 
-use rs_docker::Docker;
+use docker_sync::Docker;
 
 fn main() {
     let docker = match Docker::connect() { // we consider the local Docker socket by default, with the default path (/var/run/docker.sock), no need to precise the path
@@ -42,7 +42,7 @@ fn main() {
 ```rust
 extern crate rs_docker;
 
-use rs_docker::Docker;
+use docker_sync::Docker;
 
 fn main() {
     let mut docker = match Docker::connect() {
@@ -63,7 +63,7 @@ fn main() {
 ```rust
 extern crate rs_docker;
 
-use rs_docker::Docker;
+use docker_sync::Docker;
 
 fn main() {
     let mut docker = match Docker::connect() {
@@ -83,7 +83,7 @@ fn main() {
 ```rust
 extern crate rs_docker;
 
-use rs_docker::Docker;
+use docker_sync::Docker;
 
 fn main() {
     let mut docker = match Docker::connect() {
@@ -108,7 +108,7 @@ fn main() {
 ```rust
 extern crate rs_docker;
 
-use rs_docker::Docker;
+use docker_sync::Docker;
 
 fn main() {
     let mut docker = match Docker::connect() {
@@ -129,7 +129,7 @@ fn main() {
 ```rust
 extern crate rs_docker;
 
-use rs_docker::Docker;
+use docker_sync::Docker;
 
 fn main() {
     let mut docker = match Docker::connect() {
@@ -149,7 +149,7 @@ fn main() {
 ```rust
 extern crate rs_docker;
 
-use rs_docker::Docker;
+use docker_sync::Docker;
 
 fn main() {
     let mut docker = match Docker::connect() {
@@ -174,7 +174,7 @@ fn main() {
 ```rust
 extern crate rs_docker;
 
-use rs_docker::Docker;
+use docker_sync::Docker;
 
 fn main() {
     let mut docker = match Docker::connect() {
@@ -199,7 +199,7 @@ fn main() {
 ```rust
 extern crate rs_docker;
 
-use rs_docker::Docker;
+use docker_sync::Docker;
 
 fn main() {
     let mut docker = match Docker::connect() {
@@ -224,7 +224,7 @@ fn main() {
 ```rust
 extern crate rs_docker;
 
-use rs_docker::Docker;
+use docker_sync::Docker;
 
 fn main() {
     let mut docker = match Docker::connect() {
@@ -244,7 +244,7 @@ fn main() {
 ```rust
 extern crate rs_docker;
 
-use rs_docker::Docker;
+use docker_sync::Docker;
 
 fn main() {
     let mut docker = match Docker::connect() {
