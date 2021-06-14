@@ -5,9 +5,9 @@ description = "Minimalistic, synchronous, read-only client for local Docker sock
 version = "0.1.0"
 authors = ["Benoit Petit <bpetit@hubblo.org>"]
 license = "Apache-2.0"
-homepage = "https://github.com/bpetit/"
-repository = "https://gitlab.com/kblobr/rust-docker.git"
-documentation = "https://ghmlee.github.io/rust-docker/doc/docker"
+homepage = "https://github.com/bpetit/rs-docker-sync"
+repository = "https://github.com/bpetit/rs-docker-sync"
+documentation = "https://docs.rs/docker-sync"
 readme = "README.md"
 keywords = ["docker"]
 

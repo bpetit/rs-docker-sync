@@ -8,7 +8,7 @@ Issues and PRs welcome.
 
 Minimalistic, synchronous, read-only client for local Docker socket.
 
-Documentation is available [here](https://docs.rs/rs-docker-sync).
+Documentation is available [here](https://docs.rs/docker-sync).
 
 ## Quick start
 
