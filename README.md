@@ -1,6 +1,6 @@
 # This is a fork
 
-This is a fork of [https://github.com/bpetit/rs-docker-sync](https://gitlab.com/kblobr/rust-docker) ([rs-docker](https://crates.io/crates/rs-docker) on crate.io) which itself is a fork from [https://github.com/ghmlee/rust-docker](https://github.com/ghmlee/rust-docker) ([docker](https://crates.io/crates/docker) on crates.io). Both repositories seemed to be no longer be maintained. The main reason for this fork, besides the maintainance, is that [Scaphandre](https://github.com/hubblo-org/scaphandre/) needed a synchronous library to talk to Docker socket.
+This is a fork of [https://gitlab.com/kblobr/rust-docker](https://gitlab.com/kblobr/rust-docker) ([rs-docker](https://crates.io/crates/rs-docker) on crate.io) which itself is a fork from [https://github.com/ghmlee/rust-docker](https://github.com/ghmlee/rust-docker) ([docker](https://crates.io/crates/docker) on crates.io). Both repositories seemed to be no longer be maintained. The main reason for this fork, besides the maintainance, is that [Scaphandre](https://github.com/hubblo-org/scaphandre/) needed a synchronous library to talk to Docker socket.
 
 Issues and PRs welcome.
 
