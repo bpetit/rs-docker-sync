@@ -1,29 +1,19 @@
 #[cfg(test)]
-use container::{Container, ContainerInfo};
+use crate::container::{Container, ContainerInfo};
 #[cfg(test)]
-use filesystem::FilesystemChange;
+use crate::filesystem::FilesystemChange;
 #[cfg(test)]
-use image::Image;
+use crate::image::Image;
 #[cfg(test)]
-use network::Network;
+use crate::network::Network;
 #[cfg(test)]
-use process::Top;
+use crate::process::Top;
 #[cfg(test)]
-use stats::Stats;
+use crate::stats::Stats;
 #[cfg(test)]
-use system::SystemInfo;
+use crate::system::SystemInfo;
 #[cfg(test)]
-use version::Version;
-
-#[cfg(test)]
-use docker::create_http_request;
-
-#[test]
-#[cfg(test)]
-fn create_proper_http_request() {
-    assert_eq!(create_http_request("GET", "/containers/json?all=1&size=1", ""), "GET /containers/json?all=1&size=1 HTTP/1.1\r\nHost: localhost\r\nUser-Agent: rs_docker 1.0\r\nContent-Type: application/json\r\nAccept: application/json\r\nContent-Length: 0\r\n\r\n");
-    assert_eq!(create_http_request("POST", "/networks/create", "{a:1}"), "POST /networks/create HTTP/1.1\r\nHost: localhost\r\nUser-Agent: rs_docker 1.0\r\nContent-Type: application/json\r\nAccept: application/json\r\nContent-Length: 5\r\n\r\n{a:1}\r\n");
-}
+use crate::version::Version;
 
 #[test]
 #[cfg(test)]

@@ -1,22 +1,20 @@
 # This is a fork
 
-This crate and repo were forked from [https://github.com/ghmlee/rust-docker](https://github.com/ghmlee/rust-docker) because the original repo seems to no longer be maintained.
-
-With this in mind I will try to keep this crate as backwards compatible as possible.
+This is a fork of [https://github.com/bpetit/rs-docker-sync](https://gitlab.com/kblobr/rust-docker) ([rs-docker](https://crates.io/crates/rs-docker) on crate.io) which itself is a fork from [https://github.com/ghmlee/rust-docker](https://github.com/ghmlee/rust-docker) ([docker](https://crates.io/crates/docker) on crates.io). Both repositories seemed to be no longer be maintained. The main reason for this fork, besides the maintainance, is that [Scaphandre](https://github.com/hubblo-org/scaphandre/) needed a synchronous library to talk to Docker socket.
 
 Issues and PRs welcome.
 
 # Docker
 
-[![Build Status](https://gitlab.com/kblobr/rust-docker/badges/master/build.svg)](https://gitlab.com/kblobr/rust-docker)
+Minimalistic, synchronous, read-only client for local Docker socket.
 
-This is a Docker Remote API binding in Rust. Documentation is available [here](https://docs.rs/rs-docker).
+Documentation is available [here](https://docs.rs/rs-docker-sync).
 
 ## Quick start
 
 ```
 [dependencies]
-rs-docker = "0.0.58"
+rs-docker-sync = "0.0.58"
 ```
 
 ```rust
@@ -25,14 +23,15 @@ extern crate rs_docker;
 use rs_docker::Docker;
 
 fn main() {
-    let docker = match Docker::connect("unix:///var/run/docker.sock") {
+    let docker = match Docker::connect() { // we consider the local Docker socket by default, with the default path (/var/run/docker.sock), no need to precise the path
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
 }
 ```
 
-## Debug
+## Requirements
+
 * Rust (>= v1.4.0)
 * Docker (>= v1.5.0)
 
@@ -46,7 +45,7 @@ extern crate rs_docker;
 use rs_docker::Docker;
 
 fn main() {
-    let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
+    let mut docker = match Docker::connect() {
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
@@ -67,7 +66,7 @@ extern crate rs_docker;
 use rs_docker::Docker;
 
 fn main() {
-    let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
+    let mut docker = match Docker::connect() {
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
@@ -87,7 +86,7 @@ extern crate rs_docker;
 use rs_docker::Docker;
 
 fn main() {
-    let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
+    let mut docker = match Docker::connect() {
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
@@ -112,7 +111,7 @@ extern crate rs_docker;
 use rs_docker::Docker;
 
 fn main() {
-    let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
+    let mut docker = match Docker::connect() {
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
@@ -133,7 +132,7 @@ extern crate rs_docker;
 use rs_docker::Docker;
 
 fn main() {
-    let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
+    let mut docker = match Docker::connect() {
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
@@ -153,7 +152,7 @@ extern crate rs_docker;
 use rs_docker::Docker;
 
 fn main() {
-    let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
+    let mut docker = match Docker::connect() {
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
@@ -178,7 +177,7 @@ extern crate rs_docker;
 use rs_docker::Docker;
 
 fn main() {
-    let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
+    let mut docker = match Docker::connect() {
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
@@ -203,7 +202,7 @@ extern crate rs_docker;
 use rs_docker::Docker;
 
 fn main() {
-    let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
+    let mut docker = match Docker::connect() {
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
@@ -228,7 +227,7 @@ extern crate rs_docker;
 use rs_docker::Docker;
 
 fn main() {
-    let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
+    let mut docker = match Docker::connect() {
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
@@ -258,7 +257,7 @@ extern crate rs_docker;
 use rs_docker::Docker;
 
 fn main() {
-    let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
+    let mut docker = match Docker::connect() {
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
@@ -278,7 +277,7 @@ extern crate rs_docker;
 use rs_docker::Docker;
 
 fn main() {
-    let mut docker = match Docker::connect("unix:///var/run/docker.sock") {
+    let mut docker = match Docker::connect() {
     	Ok(docker) => docker,
         Err(e) => { panic!("{}", e); }
     };
@@ -290,46 +289,13 @@ fn main() {
 }
 ```
 
-## Docker Toolbox
-
-By default, `Docker Toolbox` runs `docker` with TLS enabled. It auto-generates certificates. The `docker-machine` will copy them to `~/.docker/machine/certs` on the host machine once the VM has started.
-
-### Example
-
-```rust
-extern crate rs_docker;
-
-use rs_docker::Docker;
-use std::path::Path;
-
-fn main() {
-    let key = Path::new("/Users/<username>/.docker/machine/certs/key.pem");
-    let cert = Path::new("/Users/<username>/.docker/machine/certs/cert.pem");
-    let ca = Path::new("/Users/<username>/.docker/machine/certs/ca.pem");
-
-    let mut docker = match Docker::connect("tcp://192.168.99.100:2376") {
-    	Ok(docker) => docker,
-        Err(e) => { panic!("{}", e); }
-    };
-    docker.set_tls(&key, &cert, &ca).unwrap();
-}
-```
-
 ## Contributing
 
 To have a consistent dev environment one can use the docker image in /devenv like so:
-1. `git clone https://gitlab.com/kblobr/rust-docker`
+1. `git clone https://github.com/bpetit/rs-docker-sync`
 2. `cd rust-docker/devenv`
 3. `./build_docker` (this assumes your user can run docker commands, otherwise `sudo`)
 4. `./run_docker -ti`
 5. Already inside the container:
   1. `cd Code`
   2. `cargo test`
-
-For changes:
-
-1. Fork it
-2. Create your a new remote upstream repository (`git remote add upstream https://gitlab.com/kblobr/rust-docker`)
-3. Commit your changes (`git commit -m 'Adds some feature'`)
-4. Push to the branch (`git push origin your-branch`)
-5. Create new Pull Request
