@@ -18,7 +18,7 @@ rs-docker-sync = "0.1.0"
 ```
 
 ```rust
-extern crate rs_docker;
+extern crate docker_sync;
 
 use docker_sync::Docker;
 
@@ -40,7 +40,7 @@ fn main() {
 ### Networks
 
 ```rust
-extern crate rs_docker;
+extern crate docker_sync;
 
 use docker_sync::Docker;
 
@@ -61,7 +61,7 @@ fn main() {
 ### Containers
 
 ```rust
-extern crate rs_docker;
+extern crate docker_sync;
 
 use docker_sync::Docker;
 
@@ -81,7 +81,7 @@ fn main() {
 ### Stats
 
 ```rust
-extern crate rs_docker;
+extern crate docker_sync;
 
 use docker_sync::Docker;
 
@@ -106,7 +106,7 @@ fn main() {
 ### Images
 
 ```rust
-extern crate rs_docker;
+extern crate docker_sync;
 
 use docker_sync::Docker;
 
@@ -127,7 +127,7 @@ fn main() {
 ### Info
 
 ```rust
-extern crate rs_docker;
+extern crate docker_sync;
 
 use docker_sync::Docker;
 
@@ -147,7 +147,7 @@ fn main() {
 ### Processes
 
 ```rust
-extern crate rs_docker;
+extern crate docker_sync;
 
 use docker_sync::Docker;
 
@@ -172,7 +172,7 @@ fn main() {
 ### Filesystem changes
 
 ```rust
-extern crate rs_docker;
+extern crate docker_sync;
 
 use docker_sync::Docker;
 
@@ -197,7 +197,7 @@ fn main() {
 ### Export a container
 
 ```rust
-extern crate rs_docker;
+extern crate docker_sync;
 
 use docker_sync::Docker;
 
@@ -222,7 +222,7 @@ fn main() {
 ### Ping the docker server
 
 ```rust
-extern crate rs_docker;
+extern crate docker_sync;
 
 use docker_sync::Docker;
 
@@ -242,7 +242,7 @@ fn main() {
 ### Show the docker version information
 
 ```rust
-extern crate rs_docker;
+extern crate docker_sync;
 
 use docker_sync::Docker;
 
