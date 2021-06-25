@@ -16,6 +16,7 @@ pub mod stats;
 pub mod system;
 mod test;
 pub mod version;
+pub mod event;
 
 // publicly re-export
 pub use docker::Docker;

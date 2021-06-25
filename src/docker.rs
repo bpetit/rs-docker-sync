@@ -6,6 +6,7 @@ use crate::process::{Process, Top};
 use crate::stats::Stats;
 use crate::system::SystemInfo;
 use crate::version::Version;
+use crate::event::Event;
 use http::method::Method;
 use isahc::{config::Dialer, prelude::*, send, Body, Request};
 use std::io::Read;
@@ -295,6 +296,34 @@ impl Docker {
                 std::io::ErrorKind::InvalidInput,
                 e.to_string(),
             )),
+        }
+    }
+
+    pub fn get_events(&mut self, since: Option<String>, until: Option<String>) -> std::io::Result<Vec<Event>> {
+        let mut url = "/events".to_string();
+        let mut options = "".to_string();
+        if let Some(since_val) = since {
+            options.push_str("since=");
+            options.push_str(&since_val);
+        }
+        if let Some(until_val) = until {
+            if !options.is_empty() {
+                options.push_str("&");
+            }
+            options.push_str("until=");
+            options.push_str(&until_val);
+        }
+        if !options.is_empty() {
+            url.push_str("?");
+            url.push_str(&options);
+        }
+        let body = self.request(Method::GET, &url, "".to_string());
+        match serde_json::from_str(&body) {
+            Ok(r_body) => Ok(r_body),
+            Err(e) => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                e.to_string()
+            ))
         }
     }
 }
