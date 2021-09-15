@@ -9,7 +9,8 @@ use crate::system::SystemInfo;
 use crate::version::Version;
 use http::method::Method;
 use isahc::{config::Dialer, prelude::*, send, Body, Request};
-use std::io::Read;
+use std::io::{Read, Error, ErrorKind};
+use std::path::Path;
 
 pub struct Docker {
     dialer: Dialer,
@@ -18,12 +19,15 @@ pub struct Docker {
 impl Docker {
     pub fn connect() -> std::io::Result<Docker> {
         let path = String::from("/var/run/docker.sock");
+        let file = Path::new(&path);
+        if !file.is_file() {
+            return Err(Error::new(ErrorKind::NotFound, "{} not found."))
+        }
         let dialer = Dialer::unix_socket(path);
-
         Ok(Docker { dialer })
     }
 
-    fn request(&self, method: Method, url: &str, body: String) -> String {
+    fn request(&self, method: Method, url: &str, body: String) -> std::io::Result<String> {
         #[cfg(unix)]
         let req = Request::builder()
             .uri(format!("http://localhost{}", url))
@@ -33,10 +37,21 @@ impl Docker {
             .dial(self.dialer.clone())
             .body(Body::from(body))
             .expect("failed to build request");
-        let mut res = send(req).unwrap();
+
+        let mut res = send(req)?;
 
         if !res.status().is_success() {
-            panic!("Request failed");
+            let mut reason = String::new();
+            if res.status().is_client_error() {
+                reason.push_str("Client error:");
+            } else if res.status().is_server_error() {
+                reason.push_str("Server error:");
+            }
+            reason.push_str(res.status().canonical_reason().unwrap());
+            return Err(Error::new(
+                ErrorKind::Other,
+                reason
+            ));
         }
 
         let body = res.body_mut();
@@ -44,7 +59,7 @@ impl Docker {
         if let Err(e) = body.read_to_string(&mut buf) {
             panic!("{}", e);
         }
-        buf
+        Ok(buf)
     }
 
     //
@@ -52,7 +67,7 @@ impl Docker {
     //
 
     pub fn get_networks(&mut self) -> std::io::Result<Vec<Network>> {
-        let body = self.request(Method::GET, "/networks", "".to_string());
+        let body = self.request(Method::GET, "/networks", "".to_string())?;
 
         match serde_json::from_str(&body) {
             Ok(networks) => Ok(networks),
@@ -68,7 +83,7 @@ impl Docker {
             Method::POST,
             "/networks/create",
             serde_json::to_string(&network).unwrap(),
-        );
+        )?;
 
         let status: serde_json::Value = match serde_json::from_str(&body) {
             Ok(status) => status,
@@ -93,7 +108,7 @@ impl Docker {
             Method::DELETE,
             &format!("/networks/{}", id_or_name),
             "".to_string(),
-        );
+        )?;
 
         match serde_json::from_str::<serde_json::Value>(&body) {
             Ok(status) => Err(std::io::Error::new(
@@ -118,7 +133,7 @@ impl Docker {
             Method::GET,
             &format!("/containers/json?all={}&size=1", a),
             "".to_string(),
-        );
+        )?;
 
         match serde_json::from_str(&body) {
             Ok(containers) => Ok(containers),
@@ -134,7 +149,7 @@ impl Docker {
             Method::GET,
             &format!("/containers/{}/top", container.Id),
             "".to_string(),
-        );
+        )?;
 
         let top: Top = match serde_json::from_str(&body) {
             Ok(top) => top,
@@ -201,7 +216,7 @@ impl Docker {
             Method::GET,
             &format!("/containers/{}/stats", container.Id),
             "".to_string(),
-        );
+        )?;
 
         match serde_json::from_str(&body) {
             Ok(stats) => Ok(stats),
@@ -225,7 +240,7 @@ impl Docker {
             Method::GET,
             &format!("/images/json?all={}", a),
             "".to_string(),
-        );
+        )?;
 
         match serde_json::from_str(&body) {
             Ok(images) => Ok(images),
@@ -237,7 +252,7 @@ impl Docker {
     }
 
     pub fn get_system_info(&mut self) -> std::io::Result<SystemInfo> {
-        let body = self.request(Method::GET, "/info", "".to_string());
+        let body = self.request(Method::GET, "/info", "".to_string())?;
 
         match serde_json::from_str(&body) {
             Ok(info) => Ok(info),
@@ -253,7 +268,7 @@ impl Docker {
             Method::GET,
             &format!("/containers/{}/json", container.Id),
             "".to_string(),
-        );
+        )?;
 
         match serde_json::from_str(&body) {
             Ok(body) => Ok(body),
@@ -272,7 +287,7 @@ impl Docker {
             Method::GET,
             &format!("/containers/{}/changes", container.Id),
             "".to_string(),
-        );
+        )?;
 
         match serde_json::from_str(&body) {
             Ok(body) => Ok(body),
@@ -284,11 +299,12 @@ impl Docker {
     }
 
     pub fn ping(&mut self) -> std::io::Result<String> {
-        Ok(self.request(Method::GET, "/_ping", "".to_string()))
+        let result = self.request(Method::GET, "/_ping", "".to_string())?;
+        Ok(result)
     }
 
     pub fn get_version(&mut self) -> std::io::Result<Version> {
-        let body = self.request(Method::GET, "/version", "".to_string());
+        let body = self.request(Method::GET, "/version", "".to_string())?;
 
         match serde_json::from_str(&body) {
             Ok(r_body) => Ok(r_body),
@@ -321,7 +337,7 @@ impl Docker {
             url.push('?');
             url.push_str(&options);
         }
-        let body = self.request(Method::GET, &url, "".to_string());
+        let body = self.request(Method::GET, &url, "".to_string())?;
         match serde_json::from_str(&body) {
             Ok(r_body) => Ok(r_body),
             Err(e) => Err(std::io::Error::new(
