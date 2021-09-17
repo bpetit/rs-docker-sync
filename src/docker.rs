@@ -20,8 +20,8 @@ impl Docker {
     pub fn connect() -> std::io::Result<Docker> {
         let path = String::from("/var/run/docker.sock");
         let file = Path::new(&path);
-        if !file.is_file() {
-            return Err(Error::new(ErrorKind::NotFound, "{} not found."))
+        if !file.exists() {
+            return Err(Error::new(ErrorKind::NotFound, format!("{} not found.", path)))
         }
         let dialer = Dialer::unix_socket(path);
         Ok(Docker { dialer })
