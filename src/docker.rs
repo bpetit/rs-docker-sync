@@ -9,7 +9,7 @@ use crate::system::SystemInfo;
 use crate::version::Version;
 use http::method::Method;
 use isahc::{config::Dialer, prelude::*, send, Body, Request};
-use std::io::{Read, Error, ErrorKind};
+use std::io::{Error, ErrorKind, Read};
 use std::path::Path;
 
 pub struct Docker {
@@ -21,7 +21,10 @@ impl Docker {
         let path = String::from("/var/run/docker.sock");
         let file = Path::new(&path);
         if !file.exists() {
-            return Err(Error::new(ErrorKind::NotFound, format!("{} not found.", path)))
+            return Err(Error::new(
+                ErrorKind::NotFound,
+                format!("{} not found.", path),
+            ));
         }
         let dialer = Dialer::unix_socket(path);
         Ok(Docker { dialer })
@@ -48,10 +51,7 @@ impl Docker {
                 reason.push_str("Server error:");
             }
             reason.push_str(res.status().canonical_reason().unwrap());
-            return Err(Error::new(
-                ErrorKind::Other,
-                reason
-            ));
+            return Err(Error::new(ErrorKind::Other, reason));
         }
 
         let body = res.body_mut();
