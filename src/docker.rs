@@ -1,4 +1,4 @@
-use crate::container::{Container, ContainerInfo};
+use crate::container::{Container, ContainerCreate, ContainerInfo};
 use crate::event::Event;
 use crate::filesystem::FilesystemChange;
 use crate::image::Image;
@@ -142,6 +142,55 @@ impl Docker {
                 e.to_string(),
             )),
         }
+    }
+
+    pub fn create_container(
+        &mut self,
+        name: &str,
+        container: ContainerCreate,
+    ) -> std::io::Result<String> {
+        let body = self.request(
+            Method::POST,
+            &format!("/containers/create?name={}", name),
+            serde_json::to_string(&container).unwrap(),
+        )?;
+
+        let status: serde_json::Value = match serde_json::from_str(&body) {
+            Ok(status) => status,
+            Err(e) => {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    e.to_string(),
+                ));
+            }
+        };
+        match status.get("Id") {
+            Some(id) => Ok(id.as_str().unwrap().to_string()),
+            _ => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                status.get("message").unwrap().to_string(),
+            )),
+        }
+    }
+
+    pub fn start_container(&self, id_or_name: &str) -> std::io::Result<String> {
+        self.request(
+            Method::POST,
+            &format!("/containers/{}/start", id_or_name),
+            "".into(),
+        )
+    }
+
+    pub fn stop_container(
+        &self,
+        id_or_name: &str,
+        timeout: &std::time::Duration,
+    ) -> std::io::Result<String> {
+        self.request(
+            Method::POST,
+            &format!("/containers/{}/stop?t={}", id_or_name, timeout.as_secs()),
+            "".into(),
+        )
     }
 
     pub fn get_processes(&mut self, container: &Container) -> std::io::Result<Vec<Process>> {
