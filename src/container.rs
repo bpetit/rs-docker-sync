@@ -167,6 +167,8 @@ pub struct HostConfigCreate {
     pub NetworkMode: Option<String>,
     pub PublishAllPorts: Option<bool>,
     pub PortBindings: Option<HashMap<String, Vec<PortBinding>>>,
+    pub AutoRemove: Option<bool>,
+    pub Binds: Option<Vec<String>>,
 }
 
 impl Clone for HostConfigCreate {
@@ -175,6 +177,8 @@ impl Clone for HostConfigCreate {
             NetworkMode: self.NetworkMode.clone(),
             PublishAllPorts: self.PublishAllPorts,
             PortBindings: self.PortBindings.clone(),
+            AutoRemove: self.AutoRemove.clone(),
+            Binds: self.Binds.clone(),
         }
     }
 }
