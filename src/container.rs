@@ -192,18 +192,60 @@ impl std::fmt::Display for HostConfigCreate {
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
 pub struct ContainerCreate {
+    pub Hostname: Option<String>,
+    pub Domainname: Option<String>,
+    pub User: Option<String>,
+    pub AttachStdin: Option<bool>,
+    pub AttachStdout: Option<bool>,
+    pub AttachStderr: Option<bool>,
+    pub ExposedPorts: Option<HashMap<String, EmptyObject>>,
+    pub Tty: Option<bool>,
+    pub OpenStdin: Option<bool>,
+    pub StdinOnce: Option<bool>,
+    pub Env: Option<Vec<String>>,
+    pub Cmd: Option<Vec<String>>,
+    pub ArgsEscaped: Option<bool>,
     pub Image: String,
+    pub Volumes: Option<HashMap<String, EmptyObject>>,
+    pub WorkingDir: Option<String>,
+    pub Entrypoint: Option<Vec<String>>,
+    pub NetworkDisabled: Option<bool>,
+    pub MacAddress: Option<String>,
+    pub OnBuild: Option<Vec<String>>,
     pub Labels: Option<HashMap<String, String>>,
-    pub ExposedPorts: Option<HashMap<String, HashMap<i32, i32>>>,
+    pub StopSignal: Option<String>,
+    pub StopTimeout: Option<u64>,
+    pub Shell: Option<Vec<String>>,
     pub HostConfig: Option<HostConfigCreate>,
 }
 
 impl Clone for ContainerCreate {
     fn clone(&self) -> Self {
         ContainerCreate {
-            Image: self.Image.clone(),
-            Labels: self.Labels.clone(),
+            Hostname: self.Hostname.clone(),
+            Domainname: self.Domainname.clone(),
+            User: self.User.clone(),
+            AttachStdin: self.AttachStdin,
+            AttachStdout: self.AttachStdout,
+            AttachStderr: self.AttachStderr,
             ExposedPorts: self.ExposedPorts.clone(),
+            Tty: self.Tty,
+            OpenStdin: self.OpenStdin,
+            StdinOnce: self.StdinOnce,
+            Env: self.Env.clone(),
+            Cmd: self.Cmd.clone(),
+            ArgsEscaped: self.ArgsEscaped,
+            Image: self.Image.clone(),
+            Volumes: self.Volumes.clone(),
+            WorkingDir: self.WorkingDir.clone(),
+            Entrypoint: self.Entrypoint.clone(),
+            NetworkDisabled: self.NetworkDisabled,
+            MacAddress: self.MacAddress.clone(),
+            OnBuild: self.OnBuild.clone(),
+            Labels: self.Labels.clone(),
+            StopSignal: self.StopSignal.clone(),
+            StopTimeout: self.StopTimeout,
+            Shell: self.Shell.clone(),
             HostConfig: self.HostConfig.clone(),
         }
     }
@@ -214,3 +256,39 @@ impl std::fmt::Display for ContainerCreate {
         write!(f, "{}", self.Image)
     }
 }
+
+impl Default for ContainerCreate {
+    fn default() -> Self {
+        ContainerCreate {
+            Hostname: None,
+            Domainname: None,
+            User: None,
+            AttachStdin: None,
+            AttachStdout: None,
+            AttachStderr: None,
+            ExposedPorts: None,
+            Tty: None,
+            OpenStdin: None,
+            StdinOnce: None,
+            Env: None,
+            Cmd: None,
+            ArgsEscaped: None,
+            Image: String::new(),
+            Volumes: None,
+            WorkingDir: None,
+            Entrypoint: None,
+            NetworkDisabled: None,
+            MacAddress: None,
+            OnBuild: None,
+            Labels: None,
+            StopSignal: None,
+            StopTimeout: None,
+            Shell: None,
+            HostConfig: None,
+        }
+    }
+}
+
+/// A struct representing the value `{}` in JSON.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub struct EmptyObject {}
