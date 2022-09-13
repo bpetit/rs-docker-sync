@@ -14,7 +14,7 @@ Documentation is available [here](https://docs.rs/docker-sync).
 
 ```
 [dependencies]
-rs-docker-sync = "0.1.0"
+rs-docker-sync = "0.1.2"
 ```
 
 ```rust
